@@ -47,6 +47,7 @@ def create_weigh_adj_mat_2():
     w = np.zeros((N,N))
     for i in range(N):
         for j in range(N):
+
             norm = np.linalg.norm(mat[i]-mat[j])
             w[i][j] =math.exp( - norm / 2 )
 
@@ -71,9 +72,12 @@ def create_weigh_adj_mat():
     w = np.zeros((N,N))
     for i in range(N):
         for j in range(i):
-            norm = np.linalg.norm(mat[i]-mat[j])
-            w[i][j] =math.exp( - norm / 2 )
-            w[j][i] =w[i][j]
+            if i==j:
+                w[i][j]==0
+            else:
+                norm = np.linalg.norm(mat[i]-mat[j])
+                w[i][j] =math.exp( - norm / 2 )
+                w[j][i] =w[i][j]
     return w
 
 def create_dig_dgr_mat(w):
@@ -106,7 +110,7 @@ def run_tests():
         D = create_dig_dgr_mat(w)
         test_function(create_weigh_adj_mat_3,a,w)
         test_function(create_weigh_adj_mat_3, a, D)
-    with open('data.json', 'w') as fp:
+    with open('../data.json', 'w') as fp:
         json.dump(failed_tests, fp,  indent=1)
 
 
