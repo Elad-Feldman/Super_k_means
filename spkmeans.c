@@ -1,4 +1,5 @@
-#include "matrix_op.c"
+#include "matrix_op.h"
+
 // gcc spkmeans.c && gcc  -o spkmeans spkmeans.c && spkmeans  5 spk  in1.txt
 
 #define Arr_size(x)  (sizeof(x) / sizeof((x)[0]))
@@ -81,6 +82,7 @@ tuple2 load_observations_from_file(double** observations,char* file_name)
 
 int main(int argc, char* argv[])
 {
+    test_mat_op();
     int k,N,d;
     N = 1000;
     d = 10;
@@ -106,7 +108,7 @@ int main(int argc, char* argv[])
         load_string(&file_name,argv[3]);
     }
     // TODO if argc not 4 or 5
-    assert(k>0);
+    //assert(k>0);
 
     assert_goal(goal);
     printf("k: %d\n goal %s\n init: %s\n file_name:%s\n ",k,goal,path_init_centroids,file_name);
