@@ -83,7 +83,7 @@ tuple2 load_observations_from_file(double** observations,char* file_name)
 int main(int argc, char* argv[])
 {
     test_mat_op();
-    int k,N,d;
+   /* int k,N,d;
     N = 1000;
     d = 10;
     char*  goal;
@@ -124,7 +124,7 @@ int main(int argc, char* argv[])
     free(file_name);
     free_matrix(observations, N);
 
-
+    */
 
 
 }
