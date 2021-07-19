@@ -6,11 +6,16 @@
 
 
 #define Arr_size(x)  (sizeof(x) / sizeof((x)[0]))
-
 typedef  struct tuple2{
     int i;
     int j;
-} tuple2;
+}tuple2;
+
+
+typedef  struct eigen_obejct{
+    double ** mat;
+    double* eigen_values;
+} e_o;
 
 /*************** Matrix functions ******************/
 double** create_matrix(int N,int d);
@@ -125,26 +130,33 @@ void print_mat( double  ** mat, int N, int d)
      free(B_T);
      return mat;
  }
+ double abs_d(double x){
+    if(x<0){
+        return -x;
+    }
+     return x;
+}
 
  int* find_ind_max_ele_off_diag(double** A, int N) { // TODO we need to change name, we find the indexs, not the max value
      assert(A);
      assert(N > 0);
      int i, j;
      int* indices= calloc(2,sizeof(int));
-     double max = A[0][1]; 
+     double max_abs = abs_d(A[0][1]);
      for (i = 0; i < N; i++)
      {
 
          for (j = 0; j < N; j++)
          {
-             if (i != j && max < A[i][j]) {
-                 max = A[i][j];
+             if (i != j && max_abs < abs_d(A[i][j])) {
+                 max_abs = abs_d(A[i][j]);
                  indices[0] = i;
                  indices[1] = j;
 
              }
          }
      }
+     print_mat(A,N,N);
      return indices;
  }
 
@@ -184,7 +196,7 @@ void print_mat( double  ** mat, int N, int d)
 
  double** create_renorm_matrix_rows(double** U, int N) {
      double** renorm_mat = create_matrix(N, N);
-     int i,j;
+     int i;
      for (i = 0; i < N; i++)
        renorm_mat[i]= renormlized_vector(U[i], N);
 
@@ -226,7 +238,7 @@ double find_vec_norm(double* a, int n) {
      return sum;
  }
 
- double** build_adj_mat(double** dot_list, int N, int D){
+ double** create_adj_mat(double** dot_list, int N, int D){
      assert(N > 0);
      assert(D > 0);
      assert(dot_list);
@@ -254,10 +266,7 @@ double find_vec_norm(double* a, int n) {
      sum_of_weights = 0;
      for (i = 0; i < N; i++)
      {
-         for (j = 0; j < length; j++)
-         {
-             sum_of_weights+= adj_mat[i][j];
-         }
+         sum_of_weights= sum_vector(adj_mat[i],N);
          assert(sum_of_weights > 0);
          mat[i][i] = sqrt(1 / sum_of_weights);
          sum_of_weights = 0;
@@ -279,10 +288,10 @@ double find_vec_norm(double* a, int n) {
      return result_mat;
  }
  
- calculate_L_norm(double** D,double** W,int N) {
+double** calculate_L_norm(double** D,double** W,int N) {
      double** id_mat = create_Id_matrix(N);
      double** mat = mult_matrix(D, W, N);
-     mat = mult_matrix(mat, D);
+     mat = mult_matrix(mat, D,N);
      mat = matrix_subtraction(id_mat, mat, N);
      free(id_mat);
      return mat;
@@ -300,27 +309,62 @@ double find_vec_norm(double* a, int n) {
      }
      return (jj - ii) / (2 * ij);
  }
- double calc_c(double teta) {
-    sign(teta)/(abs(teta)-sqrt((teta*teta)+1)
+ double calc_t(double teta) {
+   return sign(teta)/(abs(teta)+sqrt((teta*teta)+1));
  }
-
- double** build_rotation_mat(double** A,int N) {
+double calc_c(double t) {
+    return 1 / sqrt((t * t) + 1);
+}
+ double** create_rotation_mat(double** A,int N) {
      double** id_mat = create_Id_matrix(N);
      int* max_el_ind = find_ind_max_ele_off_diag(A, N);
      int i = max_el_ind[0];
      int j = max_el_ind[1];
+     free(max_el_ind);
      double teta = calc_teta(A[j][j],A[i][i],A[i][j]);
      double t = calc_t(teta);
- 
+     double c = calc_c(t);
+     id_mat[i][i] = c;
+     id_mat[j][j] = c;
+     id_mat[i][j] = c*t;
+     id_mat[j][i] = -1*c*t;
+      return id_mat;
  }
+ double* extract_eigen_values_from_mat(double** mat,int N){
+    int i;
+    double * eigen_values = calloc(N,sizeof(double));
+    for(i=0;i<N;i++){
+        eigen_values[i]=mat[i][i];
+    }
+    return eigen_values;
+}
+
+ e_o find_eigen_vectors(double** Lnorm,int N){//
+     assert(Lnorm);
+     assert(N>0);
+     double** A = Lnorm;
+     double** V= create_Id_matrix(N);
+     int count=0;
+     while(!is_diagonal(A,N)&&count<100){
+         count++;
+         print_mat(A,N,N);
+         printf("\n");
+         double** P =create_rotation_mat(A,N);
+         double** P_T = transpose_mat(P,N,N);
+         A= mult_matrix(P_T,A,N);
+         A= mult_matrix(A,P,N);/*P^T*A*P*/
+         V =mult_matrix(V,P,N);
+    }
+     e_o eigen_values_and_vectors;
+     eigen_values_and_vectors.eigen_values = extract_eigen_values_from_mat(A,N);
+     eigen_values_and_vectors.mat = V;
+     return eigen_values_and_vectors;
+}
  int test_mat_op() {
      int i, j;
-     int N = 6;
-     int D = 6;
+     int N = 3;
+     int D = 3;
      double** mat = create_matrix(N, D);
-     //double** id_mat = create_Id_matrix(N);
-    // print_mat(id_mat, N, N);
-
      int count;
      count = 1;
      for ( i = 0; i < N; i++)
@@ -328,19 +372,24 @@ double find_vec_norm(double* a, int n) {
 
          for (j = 0; j < D; j++)
          {
-             mat[i][j] = count;
-             count++;
+             if(mat[i][j]==0){
+                 mat[i][j] = count;
+                 mat[j][i] = count;
+                 count++;
+             }
+
          }
      }
 
-     //double** mat_renormed = create_renorm_matrix_rows(mat, N);
      print_mat(mat, N, N);
      printf("\n");
-     double** adj_mat = build_adj_mat(mat, N, N);
-     printf("%f \n",adj_mat[0][0]);
-     print_mat(adj_mat, N, N);
+     e_o eo = find_eigen_vectors(mat,N);
+     printf("worked");
+     print_mat(eo.mat, N, N);
+     for (int k = 0; k < N; k++) {
+         printf("%f \n",eo.eigen_values[k]);
+     }
      free(mat);
-     free(adj_mat);
      //free(id_mat);
      //free(mat_renormed);
 
@@ -349,6 +398,10 @@ double find_vec_norm(double* a, int n) {
  
 /*
  //  TODO implement
+    1.to build a struct which contains matrix and array for eigen values and eigen vectors
+    2.to optimize adj_weighted_mat
+    3.to change diagonal degree to only one loop
+
     implement jacobi algorithim
 // Vector
 
