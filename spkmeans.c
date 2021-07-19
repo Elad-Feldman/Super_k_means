@@ -50,7 +50,7 @@ int string_to_doubles(char *row,double* arr)
 
 
 }
-tuple2 load_observations_from_file(double** observations,char* file_name)
+Tuple2 load_observations_from_file(double** observations, char* file_name)
 {
     int d,N,i;
     FILE *fp;
@@ -73,7 +73,7 @@ tuple2 load_observations_from_file(double** observations,char* file_name)
     }
     fclose(fp);
     free(row);
-    tuple2 sizes;
+    Tuple2 sizes;
     sizes.i = N;
     sizes.j = d;
     return sizes;
@@ -112,7 +112,7 @@ int main(int argc, char* argv[])
 
     assert_goal(goal);
     printf("k: %d\n goal %s\n init: %s\n file_name:%s\n ",k,goal,path_init_centroids,file_name);
-    tuple2 sizes = load_observations_from_file(observations, file_name);
+    Tuple2 sizes = load_observations_from_file(observations, file_name);
     N=sizes.i;
     d=sizes.j;
 
