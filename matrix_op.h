@@ -128,7 +128,7 @@ void print_mat( double  ** mat, int N, int d)
              mat[i][j] = dot_mult_vector(A[i], B_T[j], N);
          }
      }
-     free(B_T);
+     free(B_T); // TODO use free_matrix !!
      return mat;
  }
  double abs_d(double x){
@@ -283,7 +283,6 @@ double find_vec_norm(double* a, int n) {
      int i, j;
      for ( i = 0; i < N; i++)
      {
-
          for (j = 0; j < N; j++)
          {
              result_mat[i][j] = A[i][j] - B[i][j];
@@ -296,11 +295,11 @@ double** calculate_L_norm(double** D,double** W,int N) { /* TODO what happen to 
     double** after_sub_mat;
     double** id_mat = create_Id_matrix(N);
     double** mat = mult_matrix(D, W, N);
-     mat = mult_matrix(mat, D,N);
-     after_sub_mat = matrix_subtraction(id_mat, mat, N);
-    free(mat);
-     free(id_mat);
-     return after_sub_mat;
+    mat = mult_matrix(mat, D,N); // TODO  you didn't free the first mat !
+    after_sub_mat = matrix_subtraction(id_mat, mat, N);
+    free(mat); // TODO use free_matrix !!
+    free(id_mat); // TODO use free_matrix !!
+    return after_sub_mat;
  }
  int sign(double x) {
      if (x<0)
@@ -379,34 +378,37 @@ Eigen find_eigen_vectors(double** A, int N){
      double** V = create_Id_matrix(N);
      double **P,** P_T;
      double** A1;
-     double** A2;
-     double** V1;
-     int convergence =0;
+     double** A2; // TODO maybe A_tmp?
+     double** V1; // TODO maybe V_tmp?
+     int convergence = 0;
      Eigen eigen;
-     while( !convergence){
+     while( !convergence){ // TODO I split he code
          /*print_mat(A,N,N);*/
          printf("\n");
          P = create_rotation_mat(A,N);
-         P_T= transpose_mat(P,N,N);
+         P_T = transpose_mat(P,N,N);
+
          A1 = mult_matrix(P_T,A,N);
          A2 = mult_matrix(A1,P,N);
+         free(A1); // TODO use free_matrix !!
 
-         free(A1);
-         convergence= check_convergence(A,A2,N);
-         free(A);
+         convergence= check_convergence(A,A2,N); // TODO we always use the same A, but we still re-calcualting off(A) each time ! maybe we an pass A2 the off(A) ?
+         free(A); // Todo this is the value we are passing
          A=A2;
          print_mat(A,N,N);
-         A2=NULL;
+         A2=NULL; // TODO why?
+
          V1 = mult_matrix(V,P,N);
-         free(V);
+         free(V); // TODO use free_matrix !!
          V=V1;
-         V1=NULL;
+         V1=NULL; // TODO why?
+
          free_matrix(P,N);
          free_matrix(P_T,N);
     }
      eigen.values = extract_eigen_values_from_mat(A, N);
      eigen.vectors = V;
-     eigen.mat_size=N;
+     eigen.mat_size = N;
      return eigen;
 }
 void sort_eigen_values(Eigen eign_obj){
