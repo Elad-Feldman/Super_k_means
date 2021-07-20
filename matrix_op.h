@@ -14,6 +14,7 @@ typedef  struct Tuple2{
 
 typedef  struct Eigen_Obejct{
     double ** vectors;
+    int mat_size;
     double* values;
 } Eigen;
 
@@ -143,7 +144,7 @@ Tuple2 find_ind_max_ele_off_diag(double** A, int N)
      assert(N > 0);
      int i, j;
      Tuple2 max_indeces;
-     double max_abs = abs_d(A[0][1]); // TODO why abs??
+     double max_abs = abs_d(A[0][1]);
      for (i = 0; i < N; i++)
      {
 
@@ -158,7 +159,7 @@ Tuple2 find_ind_max_ele_off_diag(double** A, int N)
          }
      }
      print_mat(A,N,N);
-     return max_indeces
+     return max_indeces;
  }
 
  int is_diagonal(double** A, int N)
@@ -187,7 +188,7 @@ Tuple2 find_ind_max_ele_off_diag(double** A, int N)
      double norm = find_vec_norm(a, n);
          double* norm_vec = calloc(n, sizeof(double));
      if (norm == 0) {
-         return norm_vec; //TODO good idea to check, but should use  assert(norm==0); this should not happen;
+         return norm_vec;
      }
      for (i = 0; i < n; i++) {
          norm_vec[i] = (a[i] / norm);
@@ -292,12 +293,14 @@ double find_vec_norm(double* a, int n) {
  }
  
 double** calculate_L_norm(double** D,double** W,int N) { /* TODO what happen to memory here? not clear */
-     double** id_mat = create_Id_matrix(N);
-     double** mat = mult_matrix(D, W, N);
+    double** after_sub_mat;
+    double** id_mat = create_Id_matrix(N);
+    double** mat = mult_matrix(D, W, N);
      mat = mult_matrix(mat, D,N);
-     mat = matrix_subtraction(id_mat, mat, N);
+     after_sub_mat = matrix_subtraction(id_mat, mat, N);
+    free(mat);
      free(id_mat);
-     return mat;
+     return after_sub_mat;
  }
  int sign(double x) {
      if (x<0)
@@ -313,7 +316,7 @@ double** calculate_L_norm(double** D,double** W,int N) { /* TODO what happen to 
      return (A_jj - A_ii) / (2 * A_ij);
  }
  double calc_t(double theta) {
-   return sign(theta)/(abs(theta)+sqrt((theta*theta)+1));
+   return sign(theta)/(abs_d(theta)+sqrt((theta*theta)+1));
  }
 double calc_c(double t) {
     return 1 / sqrt((t * t) + 1);
@@ -330,10 +333,12 @@ double calc_c(double t) {
      t = calc_t(theta);
      c = calc_c(t);
      s = t * c;
+        printf("c: %f s: %f t: %f theta: %f \n",c,s,t,theta);
      P[i][i] = c;
      P[j][j] = c;
      P[i][j] = s;
      P[j][i] = -1*s;
+     print_mat(P,N,N);
      return P;
     }
  double* extract_eigen_values_from_mat(double** mat,int N){
@@ -344,33 +349,69 @@ double calc_c(double t) {
     }
     return eigen_values;
 }
+double sum_square_elements_off_diag(double ** A,int N){
+    int i,j;
+    double sum=0;
+    for (i = 0; i <N ;i++) {
+        for (j = 0; j <N ;j++) {
+            if(i!=j){
+                sum+=A[i][j]*A[i][j];
+            }
+
+        }
+    }
+    return sum;
+}
+int check_convergence(double** A,double** A1,int N){
+    double sum_A =sum_square_elements_off_diag(A, N);
+    double sum_A1 = sum_square_elements_off_diag(A1,N);
+    if(sum_A-sum_A1<=0.001){
+        return 1;
+    }else{
+        return 0;
+    }
+}
 
 Eigen find_eigen_vectors(double** A, int N){
      /* Start with A=L_norm */
      assert(A);
      assert(N>0);
-    //* TODO I deleted the A=L_nor, I wonder we if change the orginal A here, if so - is it bad? */
      double** V = create_Id_matrix(N);
-     int count = 0;
      double **P,** P_T;
+     double** A1;
+     double** A2;
+     double** V1;
+     int convergence =0;
      Eigen eigen;
-     while( !is_diagonal(A,N) && count < 100 ){
-         count++;
-         print_mat(A,N,N);
+     while( !convergence){
+         /*print_mat(A,N,N);*/
          printf("\n");
-         P = create_rotation_mat(A,N); /* TODO free all, each iteration we create new matrices. without */
+         P = create_rotation_mat(A,N);
          P_T= transpose_mat(P,N,N);
-         A = mult_matrix(P_T,A,N); /* /* TODO free V  before new assinemnt*/
-         A = mult_matrix(A,P,N);/*P^T*A*P*//* TODO free V  before new assinemnt*/
-         V = mult_matrix(V,P,N); /* TODO free V  before new assinemnt*/
+         A1 = mult_matrix(P_T,A,N);
+         A2 = mult_matrix(A1,P,N);
+
+         free(A1);
+         convergence= check_convergence(A,A2,N);
+         free(A);
+         A=A2;
+         print_mat(A,N,N);
+         A2=NULL;
+         V1 = mult_matrix(V,P,N);
+         free(V);
+         V=V1;
+         V1=NULL;
          free_matrix(P,N);
          free_matrix(P_T,N);
-
-
     }
      eigen.values = extract_eigen_values_from_mat(A, N);
      eigen.vectors = V;
+     eigen.mat_size=N;
      return eigen;
+}
+void sort_eigen_values(Eigen eign_obj){
+    double** mat_T = transpose_mat(eign_obj.vectors, eign_obj.mat_size);
+
 }
  int test_mat_op() {
      int i, j;
@@ -396,8 +437,9 @@ Eigen find_eigen_vectors(double** A, int N){
      print_mat(mat, N, N);
      printf("\n");
      Eigen eo = find_eigen_vectors(mat, N);
-     printf("worked");
+     printf("eigen vectors: \n");
      print_mat(eo.vectors, N, N);
+     printf("eigen values: \n");
      for (int k = 0; k < N; k++) {
          printf("%f \n", eo.values[k]);
      }
@@ -410,10 +452,7 @@ Eigen find_eigen_vectors(double** A, int N){
  
 /*
    TODO implement
-    1.to build a struct which contains matrix and array for eigen values and eigen vectors
-    2.to optimize adj_weighted_mat
-    3.to change diagonal degree to only one loop
-
+    1.to optimize adj_weighted_mat
     implement jacobi algorithim
 
 
