@@ -6,3 +6,4 @@
 #define SUPER_K_MEANS_SPKMEANS_H
 
 #endif //SUPER_K_MEANS_SPKMEANS_H
+int assert_goal(char * goal);

@@ -1,6 +1,6 @@
 #include <Python.h>
 #include "matrix_op.c"
-
+#include "spkmeans.h"
 // gcc spkmeans.c && gcc  -o spkmeans spkmeans.c && spkmeans  5 spk  in1.txt
 
 #define Arr_size(x)  (sizeof(x) / sizeof((x)[0]))

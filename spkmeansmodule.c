@@ -8,7 +8,7 @@
 #include <string.h>
 #include <assert.h>
 #include "kmeans.c"
-
+#include "spkmeans.h"
 
 
 /* ************  API FUNCTION CONVERT PYTHON OBJECT INTO C ARRAY AND BACK ************ */
@@ -17,7 +17,7 @@ static void check_for_py_list(PyObject * _list)
     assert (!PyList_Check(_list) && "this is not a list ");
 }
 
-static void free_dots_list(double ** list, Py_ssize_t n, Py_ssize_t d )
+static void free_observations(double ** list, Py_ssize_t n, Py_ssize_t d )
 {
     Py_ssize_t i;
     for (i = 0; i < n; i++)
@@ -40,20 +40,20 @@ static  PyObject* get_py_lst_from_c_array(double* c_dot, Py_ssize_t  d)
     return dot;
 }
 
-static PyObject* get_py_lst_from_c_matrix(double ** c_dot_list ,  Py_ssize_t n, Py_ssize_t d)
+static PyObject* get_py_lst_from_c_matrix(double ** c_observations ,  Py_ssize_t n, Py_ssize_t d)
 {
     Py_ssize_t i;
-    PyObject * dot_list ;
+    PyObject * observations;
     PyObject* dot;
 
-    dot_list = PyList_New(n);
+    observations = PyList_New(n);
     for (i = 0; i < n; i++)
     {
-        dot = get_py_lst_from_c_array(c_dot_list[i],d);
-        PyList_SetItem(dot_list,i,dot);
+        dot = get_py_lst_from_c_array(c_observations[i],d);
+        PyList_SetItem(observations,i,dot);
     }
     // TO DO FREE MEMORY
-    return dot_list;
+    return observations;
 
 }
 
@@ -87,18 +87,18 @@ static double** get_c_matrix_from_py_lst(PyObject * _list,  Py_ssize_t n, Py_ssi
 
     Py_ssize_t i;
     PyObject  *item;
-    double ** c_dot_list;
-    c_dot_list = (double **) malloc( n* sizeof(double *));
-    assert(c_dot_list != NULL && "Problem in  load_python_list_to_c_array");
+    double ** c_observations;
+    c_observations = (double **) malloc( n* sizeof(double *));
+    assert(c_observations != NULL && "Problem in  load_python_list_to_c_array");
 
     for (i = 0; i < n; i++)
     {
         item = PyList_GetItem(_list, i);
         check_for_py_list(item);
-        c_dot_list[i] = get_c_array_from_py_lst(item,d);
+        c_observations[i] = get_c_array_from_py_lst(item,d);
     }
 
-    return c_dot_list;
+    return c_observations;
 
 }
 
@@ -114,30 +114,54 @@ static double** get_c_matrix_from_py_lst(PyObject * _list,  Py_ssize_t n, Py_ssi
  * Print list of lists of ints without changing it
  */
 static PyObject* get_flag(PyObject *self, PyObject *args){
+    char* flag;
+    int k;
+    double** observations;
+    int n;
+    int d;
+    if(!PyArg_ParseTuple(args, "siO",&flag,&k ,&_observations)) {//getting data from pyhton
+        printf("An Error Has Occured")
+        return NULL;
+    }
+    check_for_py_list(_observations);//checking to see if the python object is actually a list
+    n = PyList_Size(_observations);
+    d = PyList_Size(PyList_GetItem(_observations, 0));
+    observations = get_c_matrix_from_py_lst(_observations,n,d);
+    if(!strcmp(flag,"spk")){
+        if(k==0){
 
+        }else{
+
+        }
+
+    }else{
+        assert_goal(flag);
+    }
+
+    }
 }
 static PyObject* fit(PyObject *self, PyObject *args)
 {
-    PyObject *_dots_list,*_cluster_list,*_cluster_index_list;
+    PyObject *_observations,*_cluster_list,*_cluster_index_list;
     Py_ssize_t n,k, d;
     int n_c, k_c, d_c;
-    double ** c_dot_list;
+    double ** c_observations;
     double ** c_cluster_list;
     double * c_cluster_index_list;
 
-    if(!PyArg_ParseTuple(args, "OOO", &_dots_list,&_cluster_list,&_cluster_index_list)) { return NULL;}
+    if(!PyArg_ParseTuple(args, "OOO", &_observations,&_cluster_list,&_cluster_index_list)) { return NULL;}
 
     /* Check that we got lists */
-    check_for_py_list(_dots_list);
+    check_for_py_list(_observations);
     check_for_py_list(_cluster_list);
     check_for_py_list(_cluster_index_list);
 
-    n = PyList_Size(_dots_list);
+    n = PyList_Size(_observations);
     k = PyList_Size(_cluster_list);
-    d = PyList_Size(PyList_GetItem(_dots_list, 0));
+    d = PyList_Size(PyList_GetItem(_observations, 0));
 
     /*  create c arrays from python lists */
-    c_dot_list = get_c_matrix_from_py_lst(_dots_list,n,d);
+    c_observations = get_c_matrix_from_py_lst(_observations,n,d);
     c_cluster_list = get_c_matrix_from_py_lst(_cluster_list,k,d);
     c_cluster_index_list = get_c_array_from_py_lst(_cluster_index_list,k);
 
@@ -145,13 +169,13 @@ static PyObject* fit(PyObject *self, PyObject *args)
     k_c =(int) k;
     d_c =(int) d;
 
-    simple_kmean(c_dot_list, c_cluster_list ,c_cluster_index_list, n_c, k_c, d_c);
+    simple_kmean(c_observations, c_cluster_list ,c_cluster_index_list, n_c, k_c, d_c);
 
     _cluster_list =  get_py_lst_from_c_matrix(c_cluster_list ,k,d);
 
     /* free memory */
-    free_dots_list(c_dot_list,n,d);
-    free_dots_list(c_cluster_list,k,d);
+    free_observations(c_observations,n,d);
+    free_observations(c_cluster_list,k,d);
     free(c_cluster_index_list);
 
     return _cluster_list;
@@ -166,6 +190,10 @@ static PyObject* fit(PyObject *self, PyObject *args)
 
 static PyMethodDef _methods[] = {
         FUNC(METH_VARARGS, fit, "Print list of lists of ints without changing it"),
+        {NULL, NULL, 0, NULL}   /* sentinel */
+};
+static PyMethodDef _methods[] = {
+        {"get_flag", get_flag,"recive the goal as an argument and do the requested operation"},
         {NULL, NULL, 0, NULL}   /* sentinel */
 };
 
