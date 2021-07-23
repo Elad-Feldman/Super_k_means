@@ -297,8 +297,8 @@ double** calculate_L_norm(double** D,double** W,int N) { /* TODO what happen to 
     double** mat = mult_matrix(D, W, N);
     mat = mult_matrix(mat, D,N); // TODO  you didn't free the first mat !
     after_sub_mat = matrix_subtraction(id_mat, mat, N);
-    free(mat); // TODO use free_matrix !!
-    free(id_mat); // TODO use free_matrix !!
+    free_matrix(mat);
+    free_matrix(id_mat);
     return after_sub_mat;
  }
  int sign(double x) {
