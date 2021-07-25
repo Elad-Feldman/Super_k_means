@@ -1,5 +1,4 @@
 #define PY_SSIZE_T_CLEAN
-#include <Python.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -121,3 +120,6 @@ static  void simple_kmean (double ** dot_list, double ** cluster_list, double * 
 
 }
 
+=======
+}
+>>>>>>> origin/spk_2

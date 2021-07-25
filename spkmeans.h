@@ -1,9 +1,26 @@
-//
-// Created by TomBarzilay on 23/07/2021.
-//
 
-#ifndef SUPER_K_MEANS_SPKMEANS_H
-#define SUPER_K_MEANS_SPKMEANS_H
+typedef  struct spk_results{
+    int k;
+    double **mat; /*TODO better name */
+    Eigen eigen;
+}spk_results;
 
-#endif //SUPER_K_MEANS_SPKMEANS_H
-int assert_goal(char * goal);
+void print_verbose(char* string);
+
+/***************  SPK functions ******************/
+double abs_d(double x);
+void find_ind_max_ele_off_diag(double** A, int N,int* I, int* J);
+double* renormlized_vector(double* a, int n);
+void renorm_matrix_rows(double** U, int n, double** T);
+void create_adj_mat(double** observations, int N, int D,double** W );
+void create_diagonal_degree_mat_ns(double** adj_mat,int N,double** W);
+
+/*TODO   add decleration for all functions here */
+
+#ifndef FINAL_PROJECT_SPKMEANS_H
+#define FINAL_PROJECT_SPKMEANS_H
+
+
+
+
+#endif //FINAL_PROJECT_SPKMEANS_H
