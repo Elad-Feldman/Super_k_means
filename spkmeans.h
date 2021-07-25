@@ -1,4 +1,6 @@
 
+#include "matrix_op.h"
+
 typedef  struct spk_results{
     int k;
     double **mat; /*TODO better name */
