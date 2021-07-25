@@ -6,7 +6,13 @@
 #include "matrix_op.h"
 
 #define Arr_size(x)  (sizeof(x) / sizeof((x)[0]))
+#define verbose 0    \
+/* TODO  to zero before submitting */
 
+void print_verbose(char* string){
+    if (verbose)
+        printf("%s",string);
+}
 
 /*************** implementation Vector ******************/
 
@@ -49,8 +55,9 @@ double find_vec_norm_diff(double* a, double* b, int n) {
     return norm;
 }
 
-double sum_vector(double a[], int n) {
-    int sum, i;
+double sum_vector(double* a, int n) {
+    double sum;
+    int i;
     sum = 0;
     for (i = 0; i < n; i++) {
         sum += a[i];
@@ -60,10 +67,40 @@ double sum_vector(double a[], int n) {
 
 void print_vector(double* a,int n){
     int i;
-    printf("[");
-    for (i = 0; i < n; i++)
-        printf("%.0f,",a[i]);
-    printf("]\n");
+    int M = 1;
+    for (i = 0; i < n; i++){
+        printf("%.4f",a[i]*M);
+        if (i<n-1)
+            printf(",");
+
+    }
+
+    printf("\n");
+
+}
+void swap_int(int *a,int *b)
+{
+    int t = *a;
+    *a = *b;
+    *b = t;
+}
+
+
+void swap_double(double *a, double *b)
+{
+   double t = *a;
+
+    *a = *b;
+    *b = t;
+
+}
+
+void swap_double_pointers(double **a, double **b)
+{
+    double* t = *a;
+    *a = *b;
+    *b = t;
+
 }
 
 
@@ -125,6 +162,22 @@ void mult_matrix(double** A, double** B, double ** C ,int n) {
     free_matrix(B_T,n);
 }
 
+void copy_matrix(double** A, double** B ,int n){
+    assert(A);
+    assert(B);
+    assert(n > 0);
+
+
+    int i, j;
+    for (i = 0; i < n; i++)
+    {
+        for (j = 0; j < n; j++)
+        {
+            A[i][j] =  B[i][j];
+        }
+    }
+}
+
 void sub_matrix(double** A, double** B, double** C,int n) {
     int i, j;
     for ( i = 0; i < n; i++)
@@ -137,15 +190,12 @@ void sub_matrix(double** A, double** B, double** C,int n) {
 
 void print_mat( double  ** mat, int n, int d)
 {
-    int i, j;
-    printf("==============================\n");
+    int i;
+    print_verbose("==============================\n");
     for (i = 0; i < n; i++) {
-        printf("[");
-        for (j = 0; j < d; j++)
-            printf("%.4f,", mat[i][j]);
-        printf("]\n");
+        print_vector(mat[i],d);
     }
-    printf("==============================\n");
+    print_verbose("==============================\n");
 }
 
 double** create_Id_matrix(int n) {
@@ -159,8 +209,17 @@ double** create_Id_matrix(int n) {
      return mat;
  }
 
+void re_order_matrix_by_indces(double** A,int* indces, int n)
+{
+    int i,j;
+    for (i=0;i<n;i++){
+        j = indces[i];
+        swap_double_pointers(&A[i],&A[j]);
+    }
+}
 
 /***************  SPK functions ******************/
+
 
 
 
