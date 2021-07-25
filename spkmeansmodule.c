@@ -9,6 +9,7 @@
 #include <assert.h>
 #include "kmeans.c"
 #include "spkmeans.h"
+#include "matrix_op.h"
 
 
 /* ************  API FUNCTION CONVERT PYTHON OBJECT INTO C ARRAY AND BACK ************ */
@@ -127,18 +128,21 @@ static PyObject* get_flag(PyObject *self, PyObject *args){
     n = PyList_Size(_observations);
     d = PyList_Size(PyList_GetItem(_observations, 0));
     observations = get_c_matrix_from_py_lst(_observations,n,d);
-    if(!strcmp(flag,"spk")){
-        if(k==0){
+    assert(assert_goal(flag)==1);
 
-        }else{
-
-        }
-
+    if(strcmp(flag,"spk")==0){
+       spk_results res = activate_flag("jacobi");
+       k=res.k;
+       PyObject* spk = PyList_new(2);
+       PyList_SetItem(spk,0, get_py_lst_from_c_matrix(res.mat));
+       free_matrix(res.mat);
+       PyList_SetItem(spk,1,Py_BuildValue("i",k));
+        return spk;
     }else{
-        assert_goal(flag);
+        activate_flag(flag);
     }
 
-    }
+
 }
 static PyObject* fit(PyObject *self, PyObject *args)
 {

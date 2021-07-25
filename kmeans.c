@@ -119,7 +119,3 @@ static  void simple_kmean (double ** dot_list, double ** cluster_list, double * 
     free(cluster_size);
 
 }
-
-=======
-}
->>>>>>> origin/spk_2
