@@ -117,11 +117,13 @@ static double** get_c_matrix_from_py_lst(PyObject * _list,  Py_ssize_t n, Py_ssi
 static PyObject* get_flag(PyObject *self, PyObject *args){
     char* flag;
     int k;
+    PyObject* _observations;
     double** observations;
     int n;
     int d;
-    if(!PyArg_ParseTuple(args, "siO",&flag,&k ,&_observations)) {//getting data from pyhton
-        printf("An Error Has Occured")
+    spk_results res;
+    if(!PyArg_ParseTuple(args, "siO",&flag,&k ,&_observations)) {//getting data from python
+        printf("An Error Has Occured");
         return NULL;
     }
     check_for_py_list(_observations);//checking to see if the python object is actually a list
@@ -131,10 +133,10 @@ static PyObject* get_flag(PyObject *self, PyObject *args){
     assert(assert_goal(flag)==1);
 
     if(strcmp(flag,"spk")==0){
-       spk_results res = activate_flag("jacobi");
+       res = activate_flag("jacobi",observations,k,n,d);
        k=res.k;
        PyObject* spk = PyList_new(2);
-       PyList_SetItem(spk,0, get_py_lst_from_c_matrix(res.mat));
+       PyList_SetItem(spk,0, get_py_lst_from_c_matrix(res.mat,n,d));
        free_matrix(res.mat);
        PyList_SetItem(spk,1,Py_BuildValue("i",k));
         return spk;

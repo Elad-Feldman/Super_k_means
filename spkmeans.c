@@ -398,7 +398,7 @@ int assert_goal(char* goal)
 void load_string(char** str,char* cpy)
 {
     int len;
-    len = strlen(cpy);
+    len = (int)strlen(cpy);
     *str = (char  *) malloc(len * sizeof(char));
     assert(*str);
     strcpy(*str, cpy);
@@ -592,10 +592,6 @@ int main(int argc, char* argv[])
     free(file_name);
     free_matrix(observations, n);
     printf("\n FREE all !");
-
-
-    */
-
 
 }
 
