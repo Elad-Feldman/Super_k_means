@@ -1,4 +1,3 @@
-#include "matrix_op.c"
 #include "spkmeans.h"
 #include "kmeans.h"
 // gcc spkmeans.c && gcc  -o spkmeans spkmeans.c && spkmeans  5 wam  in1.txt
