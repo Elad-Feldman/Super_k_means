@@ -589,7 +589,6 @@ int main(int argc, char* argv[])
 
     //Free all
     free(goal);
-    free(path_init_centroids);
     free(file_name);
     free_matrix(observations, n);
     printf("\n FREE all !");
