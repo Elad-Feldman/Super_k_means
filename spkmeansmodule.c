@@ -137,7 +137,7 @@ static PyObject* get_flag(PyObject *self, PyObject *args){
        k=res.k;
        PyObject* spk = PyList_new(2);
        PyList_SetItem(spk,0, get_py_lst_from_c_matrix(res.mat,n,d));
-       free_matrix(res.mat);
+       free_matrix(res.mat,res.eigen.mat_size);
        PyList_SetItem(spk,1,Py_BuildValue("i",k));
         return spk;
     }else{
