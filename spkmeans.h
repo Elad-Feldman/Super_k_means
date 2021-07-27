@@ -1,5 +1,7 @@
+#include "kmeans.h"
 
-#include "matrix_op.h"
+
+
 #define  is_goal(string) strcmp(goal,string) == 0
 typedef  struct spk_results{
     int k;

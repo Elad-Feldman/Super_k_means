@@ -3,9 +3,10 @@
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
-#include "matrix_op.h"
+#include "kmeans.h"
 
-static double find_distance(double *dot, double *center, int d){
+
+ double find_distance(double *dot, double *center, int d){
     double dis;
     int i;
     dis = 0;
@@ -15,7 +16,7 @@ static double find_distance(double *dot, double *center, int d){
     return  dis;
 
 }
-static int get_index_of_closest_cluster(double* dot, double** cluster_list, int d, int k )
+ int get_index_of_closest_cluster(double* dot, double** cluster_list, int d, int k )
 {
     int j;
     int i;
@@ -35,7 +36,7 @@ static int get_index_of_closest_cluster(double* dot, double** cluster_list, int 
     }
     return j;
 }
-static void update_cluster_center(double* dot, double * center,int cluster_size,int d,int sign) {
+ void update_cluster_center(double* dot, double * center,int cluster_size,int d,int sign) {
     double* center_temp;
     int i;
     if (cluster_size+sign==0)
@@ -54,7 +55,7 @@ static void update_cluster_center(double* dot, double * center,int cluster_size,
 }
 
 
-static  void simple_kmean (double ** T_mat, double ** T_cluster_list, double * cluster_index_list,double ** observations, int n, int k, int d) {
+void simple_kmean (double ** T_mat, double ** T_cluster_list, int * cluster_index_list,double ** observations, int n, int k, int d) {
     int i,j;
     int *T_at;
     int *move_T_to;

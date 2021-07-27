@@ -7,8 +7,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
-#include "kmeans.c"
 #include "spkmeans.h"
+
 
 
 /* ************  API FUNCTION CONVERT PYTHON OBJECT INTO C ARRAY AND BACK ************ */
@@ -171,13 +171,13 @@ static PyObject* fit(PyObject *self, PyObject *args)
     /*  create c arrays from python lists */
     c_observations = get_c_matrix_from_py_lst(_observations,n,d);
     c_cluster_list = get_c_matrix_from_py_lst(_cluster_list,k,d);
-    c_cluster_index_list = get_c_array_from_py_lst(_cluster_index_list,k);
+    c_cluster_index_list = get_c_array_from_py_lst(_cluster_index_list,k);//TODO FIX TO BE INT
 
     n_c =(int) n;
     k_c =(int) k;
     d_c =(int) d;
 
-    simple_kmean(c_observations, c_cluster_list ,c_cluster_index_list, n_c, k_c, d_c);
+    //simple_kmean(c_observations, c_cluster_list ,c_cluster_index_list, n_c, k_c, d_c);
 
     _cluster_list =  get_py_lst_from_c_matrix(c_cluster_list ,k,d);
 
