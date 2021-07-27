@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
+#include "matrix_op.h"
 
 static double find_distance(double *dot, double *center, int d){
     double dis;
@@ -53,31 +54,31 @@ static void update_cluster_center(double* dot, double * center,int cluster_size,
 }
 
 
-static  void simple_kmean (double ** dot_list, double ** cluster_list, double * cluster_index_list, int n,int k,int d) {
+static  void simple_kmean (double ** T_mat, double ** T_cluster_list, double * cluster_index_list,double ** observations, int n, int k, int d) {
     int i,j;
-    int *dot_at;
-    int *move_dot_to;
-    int *cluster_size;
+    int *T_at;
+    int *move_T_to;
+    int *T_cluster_size;
     int max_iter;
     max_iter = 300;
 
     int is_a_cluster_changed;
     int count_iter;
 
-    dot_at = (int*) calloc(n,sizeof (int));
-    move_dot_to = (int*) calloc(n,sizeof (int));
-    cluster_size = (int*) calloc(k,sizeof (int));
+    T_at = (int*) calloc(n, sizeof (int));
+    move_T_to = (int*) calloc(n, sizeof (int));
+    T_cluster_size = (int*) calloc(k, sizeof (int));
 
 
     for (i = 0; i < n; i++) {
-        dot_at[i] = -1;
-        move_dot_to[i] = 0;
+        T_at[i] = -1;
+        move_T_to[i] = 0;
     }
 
-    for (i = 0; i < k; i++) {
+    for (i = 0; i < k; i++) { /* set inial  locations */
         j = (int) cluster_index_list[i]; /*[ 44,56,73 ] */
-        dot_at[j] = i;
-        cluster_size[i] = 1;
+        T_at[j] = i;
+        T_cluster_size[i] = 1;
 
     }
 
@@ -90,32 +91,45 @@ static  void simple_kmean (double ** dot_list, double ** cluster_list, double * 
         count_iter++;
 
         for (i = 0; i < n; i++) /*find nearest clusters */
-            move_dot_to[i] = get_index_of_closest_cluster(dot_list[i], cluster_list, d, k);
+            move_T_to[i] = get_index_of_closest_cluster(T_mat[i], T_cluster_list, d, k);
 
         for (j = 0; j < n; j++) {/* update clusters*/
-            if (dot_at[j] == -1) {
-                dot_at[j] = move_dot_to[j];
-                update_cluster_center(dot_list[j], cluster_list[move_dot_to[j]], cluster_size[move_dot_to[j]], d,1); /*add dot to center*/
-                cluster_size[move_dot_to[j]]++;
+            if (T_at[j] == -1) {
+                T_at[j] = move_T_to[j];
+                update_cluster_center(T_mat[j], T_cluster_list[move_T_to[j]], T_cluster_size[move_T_to[j]], d, 1); /*add dot to center*/
+                T_cluster_size[move_T_to[j]]++;
                 is_a_cluster_changed = 1;
             } else {
-                if (dot_at[j] != move_dot_to[j]) {
-                    update_cluster_center(dot_list[j], cluster_list[dot_at[j]], cluster_size[dot_at[j]], d,
+                if (T_at[j] != move_T_to[j]) {
+                    update_cluster_center(T_mat[j], T_cluster_list[T_at[j]], T_cluster_size[T_at[j]], d,
                                           -1); /*remove dot from center */
-                    update_cluster_center(dot_list[j], cluster_list[move_dot_to[j]], cluster_size[move_dot_to[j]], d,
+                    update_cluster_center(T_mat[j], T_cluster_list[move_T_to[j]], T_cluster_size[move_T_to[j]], d,
                                           1); /*add dot to center */
-                    cluster_size[dot_at[j]]--;
-                    cluster_size[move_dot_to[j]]++;
-                    dot_at[j] = move_dot_to[j];
+                    T_cluster_size[T_at[j]]--;
+                    T_cluster_size[move_T_to[j]]++;
+                    T_at[j] = move_T_to[j];
                     is_a_cluster_changed = 1;
                 }
             }
         }
     }
 
-    /* print_matrix(cluster_list, k, d); */
-    free(dot_at);
-    free(move_dot_to);
-    free(cluster_size);
+    /**** create the cluster for observations ****/
+    double **Ob_clusters = create_matrix(n,d);
+    int *Ob_cluster_size = (int*) calloc(k, sizeof (int));
+
+    for (i = 0; i < n; i++) {/* update clusters*/
+        j = T_at[i]; /*[ 44,56,73 ] */
+        update_cluster_center(observations[i], Ob_clusters[j], Ob_cluster_size[j], d, 1); /*add dot to center*/
+        T_cluster_size[i]++;
+    }
+    print_vector(cluster_index_list,k);
+    print_mat(Ob_clusters,n,d);
+    
+    free_matrix(Ob_clusters,n);
+    free(Ob_cluster_size);
+    free(T_at);
+    free(move_T_to);
+    free(T_cluster_size);
 
 }
