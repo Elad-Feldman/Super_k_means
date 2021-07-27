@@ -3,7 +3,6 @@
 #include <string.h>
 #include <assert.h>
 #include<math.h>
-
 typedef  struct Tuple2{
     int i;
     int j;
@@ -27,6 +26,7 @@ double sum_vector(double* a, int n);
 void print_vector(double* a,int n);
 void swap_int(int *a,int *b);
 void swap_double(double *a, double *b);
+
 
 
 

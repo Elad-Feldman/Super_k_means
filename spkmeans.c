@@ -266,7 +266,6 @@ Eigen find_eigen_vectors_and_values(double** A, int n){
 
     print_vector(eigen.values,n);
     print_mat(eigen.vectors,n,n);
-
     Qsort_eigen_values(eigen.values,eigen.ranks,0,n-1);
     printf("\n==============\n");
     print_verbose("done sorting!");
@@ -387,7 +386,7 @@ int assert_goal(char* goal)
         return 1;
     if (strcmp(goal,"jacobi")==0)
         return 1;
-    assert(!"goal is not define");
+    assert(!"goal is not define"); /* TODO invalid input */
     return 0;
 
 
@@ -480,7 +479,11 @@ spk_results activate_flag(char* goal,double** observations , int k, int n, int d
     create_adj_mat(observations,n,d,W);
 
     if (is_goal("wam")){
+        printf("wam:\n");
         Res.mat = W;
+        print_mat(Res.mat,n,n);
+        free_matrix(W,n);
+        printf("\n");
         return Res;
     }
 
@@ -488,8 +491,12 @@ spk_results activate_flag(char* goal,double** observations , int k, int n, int d
     create_diagonal_degree_mat_ns(W,n,D);
     if (is_goal("ddg"))
     {
+        printf("ddg:\n");
         Res.mat = D;
         free_matrix(W,n);
+        print_mat(Res.mat,n,n);
+        free_matrix(D,n);//
+        printf("\n");
         return Res;
     }
 
@@ -498,24 +505,36 @@ spk_results activate_flag(char* goal,double** observations , int k, int n, int d
     create_L_norm(D,W,n,L);
     if (is_goal("lnorm"))
     {
+        printf("lnorm:\n");
         Res.mat = L;
         free_matrix(W,n);
         free_matrix(D,n);
+        print_mat(Res.mat,n,n);
+        free_matrix(L,n);
+        printf("\n");
         return Res;
     }
     print_verbose("start jacobi\n");
     Res.eigen = find_eigen_vectors_and_values(L, n);
+    if (k==0)
+        k = eigengap_huristic(Res.eigen);
     if (is_goal("jacobi"))
-    {
+    {//0.0000,0.0000,0.8048,0.9084,1.0775,1.0836,1.1706,1.2125,1.2270,1.2622
+        printf("jacobi:\n");
+        printf("eigen vectors:\n");
+        print_mat(Res.eigen.vectors,n,k);
+        printf("eigen values:\n");
+        print_vector(Res.eigen.values,n);
         free_matrix(W,n);
         free_matrix(D,n);
-        free_matrix(L,n);
+        //free_matrix(L,n);
+        //free_eigen(Res.eigen);
         print_verbose("finish jacobi");
+        printf("hello");
         return Res;
     }
 
-    if (k==0)
-        k = eigengap_huristic(Res.eigen);
+
     int i;
     double** U  = (double**)  malloc(n* sizeof (double *)) ;
     assert(U);

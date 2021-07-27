@@ -11,7 +11,6 @@
 #include "spkmeans.h"
 
 
-
 /* ************  API FUNCTION CONVERT PYTHON OBJECT INTO C ARRAY AND BACK ************ */
 static void check_for_py_list(PyObject * _list)
 {
@@ -115,37 +114,40 @@ static double** get_c_matrix_from_py_lst(PyObject * _list,  Py_ssize_t n, Py_ssi
  * Print list of lists of ints without changing it
  */
 static PyObject* get_flag(PyObject *self, PyObject *args){
-    char* flag;
+   char* goal;
     int k;
     PyObject* _observations;
     double** observations;
     int n;
     int d;
     spk_results res;
-    if(!PyArg_ParseTuple(args, "siO",&flag,&k ,&_observations)) {//getting data from python
+    if(!PyArg_ParseTuple(args, "siO",&goal,&k ,&_observations)) {//getting data from python
         printf("An Error Has Occured");
         return NULL;
     }
     check_for_py_list(_observations);//checking to see if the python object is actually a list
-    n = PyList_Size(_observations);
-    d = PyList_Size(PyList_GetItem(_observations, 0));
+    n = (int) PyList_Size(_observations);
+    d = (int)PyList_Size(PyList_GetItem(_observations, 0));
     observations = get_c_matrix_from_py_lst(_observations,n,d);
-    assert(assert_goal(flag)==1);
+    assert_goal(goal);
 
-    if(strcmp(flag,"spk")==0){
-       res = activate_flag("jacobi",observations,k,n,d);
-       k=res.k;
-       PyObject* spk = PyList_new(2);
-       PyList_SetItem(spk,0, get_py_lst_from_c_matrix(res.mat,n,d));
-       free_matrix(res.mat,res.eigen.mat_size);
-       PyList_SetItem(spk,1,Py_BuildValue("i",k));
-        return spk;
-    }else{
-        activate_flag(flag);
+
+     PyObject* T_K = PyList_New((Py_ssize_t)2);
+     res  = activate_flag(goal,observations,k,n,d);
+     if(is_goal("spk")){
+     PyList_SetItem(T_K,0, get_py_lst_from_c_matrix(res.mat,n,d));
+     PyList_SetItem(T_K,1,Py_BuildValue("i",k));
+     }
+
+
+
+     // TODO free over
+       free_matrix(observations,n);
+       return T_K;
     }
 
 
-}
+
 static PyObject* fit(PyObject *self, PyObject *args)
 {
     PyObject *_observations,*_cluster_list,*_cluster_index_list;
@@ -196,12 +198,10 @@ static PyObject* fit(PyObject *self, PyObject *args)
 
 static PyMethodDef _methods[] = {
         FUNC(METH_VARARGS, fit, "Print list of lists of ints without changing it"),
-        {NULL, NULL, 0, NULL}   /* sentinel */
+        {"get_flag",(PyCFunction)get_flag,METH_VARARGS,PyDoc_STR("recive the goal as an argument and do the requested operation")},
+        {NULL, NULL, 0, NULL}
 };
-static PyMethodDef _methods[] = {
-        {"get_flag", get_flag,"recive the goal as an argument and do the requested operation"},
-        {NULL, NULL, 0, NULL}   /* sentinel */
-};
+
 
 static struct PyModuleDef _moduledef = {
         PyModuleDef_HEAD_INIT,

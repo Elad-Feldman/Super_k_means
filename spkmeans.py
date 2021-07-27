@@ -10,7 +10,7 @@ import spkmeans
 ## NOTE - WORK with python 3 only
 
 def smart_print(msg):
-    print_time = False
+    print_time = True
     if print_time:
         print(msg)
 
@@ -97,19 +97,21 @@ def parse2():
 
 
 def main():
-    t0 = time.process_time()
+    T0 = time.process_time()
     np.random.seed(0)
     k, goal, filename = parse2()
-    print("started data")
     observations = load_data_to_dots(filename)
-    print("finished data")
     assert len(observations) > k, "k must be smaller than number of input vectors"
+
     T1 = time.process_time()
+    smart_print(f"time load data:{T1 - T0}")
     T_and_k = spkmeans.get_flag(goal,k,observations)
+    T2 = time.process_time()
+    print("done !")
+    smart_print(f"time for {goal}:{T2 - T1}")
+    return
     k = T_and_k[1]
     indices = find_initial_clusters(T_and_k[0], k)
-    T2 = time.process_time()
-    smart_print(f"time to find indices:{T2 - T1}")
     observations = observations.tolist()
     clusters = get_cluster_list(observations, indices)
     t1 = time.process_time()
