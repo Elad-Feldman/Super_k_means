@@ -124,7 +124,7 @@ void simple_kmean (double ** T_mat, double ** T_cluster_list, int * cluster_inde
         update_cluster_center(observations[i], Ob_clusters[j], Ob_cluster_size[j], d, 1); /*add dot to center*/
         T_cluster_size[i]++;
     }
-    print_vector(cluster_index_list,k);
+    print_vector((double*)cluster_index_list,k);
     print_mat(Ob_clusters,n,d);
     
     free_matrix(Ob_clusters,n);

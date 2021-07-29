@@ -562,7 +562,7 @@ double** init_clusters_list(double** T,int n,int k){
     copy_matrix(cluster_list,T,k);
     return cluster_list;
 }
-init_clusters_indexes(int k){
+int * init_clusters_indexes(int k){
     int * clusters_indexes = calloc(k,sizeof(int));
     int i;
     for(i=0;i<k;i++){
@@ -599,13 +599,13 @@ int main(int argc, char* argv[])
     Res = activate_flag( goal, observations , k,  n, d);
     print_verbose("\nfinish activate_flag\n");
     if(!is_goal("spk")){
-        return;
+        exit(0);
     }
     k=Res.k;
     printf("found k: %d",Res.k);
     printf("create full spk here");
     double** T_clusters_list = init_clusters_list(Res.mat,n,k);
-    int * T_clusters_indexes = init_clusters_indexes(k);
+    int * T_clusters_indexes =(int*) init_clusters_indexes(k);
     simple_kmean(Res.mat, T_clusters_list, T_clusters_indexes,observations,n,k,d);
 
     //Free all
