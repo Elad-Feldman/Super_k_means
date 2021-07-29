@@ -18,6 +18,8 @@ void my_assert(int  cond)
 
 /************* implementation  SPK -  matrix  ***********/
 
+
+
 void renorm_matrix_rows(double** U, int n, double** T)
 {
     int i;
@@ -219,11 +221,14 @@ void Qsort_eigen_values(double* e_values,int* ranks,int low, int high){
 
 }
 
-Eigen find_eigen_vectors_and_values(double** A, int n){
+Eigen find_eigen_vectors_and_values(double** L, int n){
     /* Start with A = L_norm */
-    print_verbose("start: find eigen vactors");
-    my_assert(A != NULL);
+    my_assert(L != NULL);
     my_assert(n>0);
+    double ** A = create_matrix(n,n);
+    copy_matrix(A,L,n);
+    print_verbose("start: find eigen vactors");
+
     int i;
     double** V = create_Id_matrix(n);
     double** V_tmp =  create_matrix(n,n);
@@ -250,10 +255,6 @@ Eigen find_eigen_vectors_and_values(double** A, int n){
 
         convergence = check_convergence(A,A_f,n);
         copy_matrix(A,A_f,n);
-
-   //     printf("jacobi iter: %d,",i);
-
-
         mult_matrix(V,P,V_tmp,n);
         copy_matrix(V,V_tmp,n);
         free_matrix(P,n);
@@ -261,7 +262,7 @@ Eigen find_eigen_vectors_and_values(double** A, int n){
     }
     free_matrix(A_tmp,n);
     free_matrix(A,n);
-    free_matrix(V,n);
+    //free_matrix(V,n);
     print_verbose("\nfound vectors!\n");
 
     eigen.vectors = V;
@@ -273,12 +274,8 @@ Eigen find_eigen_vectors_and_values(double** A, int n){
     for (i = 0; i < n; i++) /* after sorting, in [i]=j, j would the be the rank of the i vector */
         eigen.ranks[i] = i;
 
-    print_vector(eigen.values,n);
-    print_mat(eigen.vectors,n,n);
-
+    //TODO sort only for spk, not for jacobi
     Qsort_eigen_values(eigen.values,eigen.ranks,0,n-1);
-    printf("\n==============\n");
-    print_verbose("done sorting!");
     re_order_matrix_by_indces(eigen.vectors, eigen.ranks, n); /* TODO are the rows the eigenvectors or the colmuns ? */
     return eigen;
 }
@@ -298,6 +295,7 @@ int  eigengap_huristic(Eigen eigen){
     my_assert(k>0);
     return k;
 }
+
 
 double* renormlized_vector(double* a, int n) {
     my_assert(a != NULL);
@@ -407,7 +405,7 @@ int assert_goal(char* goal)
 void load_string(char** str,char* cpy)
 {
     int len;
-    len = strlen(cpy);
+    len = (int)strlen(cpy);
     *str = (char  *) malloc(len * sizeof(char));
     my_assert(*str != NULL);
     strcpy(*str, cpy);
@@ -490,7 +488,9 @@ spk_results activate_flag(char* goal,double** observations , int k, int n, int d
     create_adj_mat(observations,n,d,W);
 
     if (is_goal("wam")){
-        Res.mat = W;
+        print_verbose("wam:\n");
+        print_mat(W,n,n);
+        free_matrix(W,n);
         return Res;
     }
 
@@ -498,8 +498,10 @@ spk_results activate_flag(char* goal,double** observations , int k, int n, int d
     create_diagonal_degree_mat_ns(W,n,D);
     if (is_goal("ddg"))
     {
-        Res.mat = D;
+        print_verbose("ddg:\n");
+        print_mat(D,n,n);
         free_matrix(W,n);
+        free_matrix(D,n);//
         return Res;
     }
 
@@ -508,7 +510,9 @@ spk_results activate_flag(char* goal,double** observations , int k, int n, int d
     create_L_norm(D,W,n,L);
     if (is_goal("lnorm"))
     {
-        Res.mat = L;
+        print_verbose"lnorm:\n");
+        print_mat(L,n,n);
+        free_matrix(L,n);
         free_matrix(W,n);
         free_matrix(D,n);
         return Res;
@@ -517,6 +521,11 @@ spk_results activate_flag(char* goal,double** observations , int k, int n, int d
     Res.eigen = find_eigen_vectors_and_values(L, n);
     if (is_goal("jacobi"))
     {
+        print_verbose("jacobi:\n");
+        print_verbose("eigen vectors:\n");
+        print_mat(Res.eigen.vectors,n,n);
+        print_verbose("eigen values:\n");
+        print_vector(Res.eigen.values,n); //TODO transpose
         free_matrix(W,n);
         free_matrix(D,n);
         free_matrix(L,n);
@@ -548,7 +557,20 @@ spk_results activate_flag(char* goal,double** observations , int k, int n, int d
 }
 
 
-
+double** init_clusters_list(double** T,int n,int k){
+    int i;
+    double** cluster_list = create_matrix(k,k);
+    copy_matrix(cluster_list,T,k);
+    return cluster_list;
+}
+int * init_clusters_indexes(int k){
+    int * clusters_indexes = calloc(k,sizeof(int));
+    int i;
+    for(i=0;i<k;i++){
+      clusters_indexes[i]=i;
+    }
+    return clusters_indexes;
+}
 
 int main(int argc, char* argv[])
 {
@@ -577,24 +599,15 @@ int main(int argc, char* argv[])
     spk_results Res;
     Res = activate_flag( goal, observations , k,  n, d);
     print_verbose("\nfinish activate_flag\n");
-    if ( (is_goal("wam")) || (is_goal("ddg"))  || (is_goal("lnorm")) ){
-            print_mat(Res.mat,n,n);
-            free_matrix(Res.mat,n);
+    if(!is_goal("spk")){
+        return 0;
     }
-    else
-        if (is_goal("jacobi"))
-        {
-          //  print_vector(Res.eigen.values,n);
-          //  print_mat(Res.eigen.vectors,n,n);
-            free_eigen(Res.eigen);
-            free_matrix(Res.mat,n);
-        }
-        else //  full spk
-        {
-            printf("found k: %d",Res.k);
-            printf("create full spk here");
-        }
-
+    k=Res.k;
+    printf("found k: %d",Res.k);
+    printf("create full spk here");
+    double** T_clusters_list = init_clusters_list(Res.mat,n,k);
+    int * T_clusters_indexes =(int*) init_clusters_indexes(k);
+    simple_kmean(Res.mat, T_clusters_list, T_clusters_indexes,observations,n,k,d);
 
     //Free all
     free(goal);
@@ -602,8 +615,9 @@ int main(int argc, char* argv[])
     free_matrix(observations, n);
     printf("\n  C done !");
 
-
-
-
 }
 
+/*TODO:
+check why free eigen dosnt work
+lines 551,529
+*/
