@@ -122,9 +122,12 @@ double **create_matrix(int n, int d)
 void free_matrix( double  ** A, int n)
 {
     int i;
-    for (i = 0; i < n; i++)
+    for (i = 0; i < n; i++){
         free(A[i]);
+        A[i] = NULL;
+    }
     free(A);
+    A = NULL;
 }
 
 double** transpose_mat(double** mat, int n, int D)

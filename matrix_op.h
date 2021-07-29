@@ -4,18 +4,7 @@
 #include <assert.h>
 #include<math.h>
 
-typedef  struct Tuple2{
-    int i;
-    int j;
-}Tuple2;
 
-
-typedef  struct Eigen_Obejct{
-    double ** vectors;
-    double* values;
-    int *ranks;
-    int mat_size;
-} Eigen;
 
 /*************** Vectors functions ******************/
 

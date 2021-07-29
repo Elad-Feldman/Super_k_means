@@ -1,3 +1,18 @@
+#include "matrix_op.h"
+#include "kmeans.h"
+typedef  struct Tuple2{
+    int i;
+    int j;
+}Tuple2;
+
+
+typedef  struct Eigen_Obejct{
+    double ** vectors;
+    double* values;
+    int *ranks;
+    int mat_size;
+} Eigen;
+
 
 typedef  struct spk_results{
     int k;
@@ -6,6 +21,8 @@ typedef  struct spk_results{
 }spk_results;
 
 void print_verbose(char* string);
+
+void my_assert(int  cond);
 
 /***************  SPK functions ******************/
 double abs_d(double x);
