@@ -27,7 +27,7 @@ int assert_goal(char* goal)
         return 1;
     if (strcmp(goal,"jacobi")==0)
         return 1;
-    assert(!"goal is not define"); //TODO invalid input
+    assert(!&&"Invalid Input"); //TODO invalid input
     return 0;
 
 
@@ -616,7 +616,7 @@ Eigen find_eigen_vectors_and_values(double** L, int n){
     my_assert(n>0);
     double ** A = create_matrix(n,n);
     copy_matrix(A,L,n);
-    print_verbose("start: find eigen vactors");
+    print_verbose("start: find eigen vectors");
 
     int i;
     double** V = create_Id_matrix(n);
@@ -650,8 +650,6 @@ Eigen find_eigen_vectors_and_values(double** L, int n){
         free_matrix(P_T,n);
     }
     free_matrix(A_tmp,n);
-    free_matrix(A,n);
-    //free_matrix(V,n);
     print_verbose("\nfound vectors!\n");
 
     eigen.vectors = V;
@@ -659,10 +657,9 @@ Eigen find_eigen_vectors_and_values(double** L, int n){
     eigen.values = extract_eigen_values_from_mat(A, n);
     eigen.ranks =  (int*) calloc(n , sizeof (int));
     my_assert(eigen.ranks != NULL);
-
+    free_matrix(A,n);
     for (i = 0; i < n; i++) /* after sorting, in [i]=j, j would the be the rank of the i vector */
         eigen.ranks[i] = i;
-
     //TODO sort only for spk, not for jacobi
     Qsort_eigen_values(eigen.values,eigen.ranks,0,n-1);
     re_order_matrix_by_indces(eigen.vectors, eigen.ranks, n); /* TODO are the rows the eigenvectors or the colmuns ? */
@@ -706,11 +703,8 @@ spk_results activate_flag(char* goal,double** observations , int k, int n, int d
     Res.eigen.values = NULL;
     Res.eigen.vectors = NULL;
     Res.eigen.mat_size = 0;
-
-
     double** W = create_matrix(n, n);
     create_adj_mat(observations,n,d,W);
-
     if (is_goal("wam")){
         print_verbose("wam:\n");
         print_mat(W,n,n);
@@ -741,10 +735,8 @@ spk_results activate_flag(char* goal,double** observations , int k, int n, int d
         free_matrix(D,n);
         return Res;
     }
-    print_verbose("start jacobi\n");
     Res.eigen = find_eigen_vectors_and_values(L, n);
-    if (is_goal("jacobi"))
-    {
+    if (is_goal("jacobi")){
         print_verbose("jacobi:\n");
         print_verbose("eigen vectors:\n");
         print_mat(Res.eigen.vectors,n,n);

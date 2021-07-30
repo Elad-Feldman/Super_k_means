@@ -7,7 +7,7 @@
 #include <math.h>
 #define  is_goal(string) strcmp(goal,string) == 0
 
-#define verbose 0    \
+#define verbose 1    \
 /* TODO  to zero before submitting */
 
 /****** Strcuts START *******/

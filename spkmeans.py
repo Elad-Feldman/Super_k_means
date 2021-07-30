@@ -112,12 +112,12 @@ def main():
     if goal!="spk":
         return
     indices = find_initial_clusters(T_and_k[0], k)
-    #observations = observations.tolist()
     clusters = get_cluster_list(observations, indices)
     t1 = time.process_time()
-    smart_print(f"time to read files:{time.process_time() - t0}")
-
-    clusters = np.array(spkmeans.fit(max_iter, observations, clusters, indices))
+    smart_print(f"time to read files:{time.process_time() - t1}")
+    spkmeans.fit(T_and_k[0], clusters, indices, observations)
+    return
+    clusters = np.array()
     clusters = np.round(clusters, 4)
     smart_print(f"time to kmean files:{time.process_time() - t1}")
     smart_print("-----RESULTS:------")

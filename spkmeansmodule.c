@@ -65,9 +65,33 @@ static  double* get_c_array_from_py_lst(PyObject * list, Py_ssize_t  d)
     /* NEVER EVER USE malloc/calloc/realloc or free on PyObject */
     double *c_dot = malloc(sizeof(double) * d);
     assert(c_dot != NULL && "Problem in  load_python_list_to_c_array");
+        printf("\n");
     for (i = 0; i < d; i++) {
+        printf("here \n");
         item = PyList_GetItem(list, i); /* DON'T FREE - cause problems */
         c_dot[i] =  PyFloat_AsDouble((item));
+
+        if (c_dot[i]  == -1 && PyErr_Occurred()){
+            puts("Something bad ...");
+            free(c_dot);
+            return c_dot;
+        }
+
+    }
+
+    return c_dot;
+}
+static  int* get_int_c_array_from_py_lst(PyObject * list, Py_ssize_t  d)
+{
+    Py_ssize_t i;
+    PyObject *item;
+    /* NEVER EVER USE malloc/calloc/realloc or free on PyObject */
+    int *c_dot = malloc(sizeof(double) * d);
+    assert(c_dot != NULL && "Problem in  load_python_list_to_c_array");
+    for (i = 0; i < d; i++) {
+
+        item = PyList_GetItem(list, i); /* DON'T FREE - cause problems */
+        c_dot[i] =  PyLong_AsLong((item));
 
         if (c_dot[i]  == -1 && PyErr_Occurred()){
             puts("Something bad ...");
@@ -96,8 +120,8 @@ static double** get_c_matrix_from_py_lst(PyObject * _list,  Py_ssize_t n, Py_ssi
         item = PyList_GetItem(_list, i);
         check_for_py_list(item);
         c_observations[i] = get_c_array_from_py_lst(item,d);
-    }
 
+    }
     return c_observations;
 
 }
@@ -125,13 +149,12 @@ static PyObject* get_flag(PyObject *self, PyObject *args){
         printf("An Error Has Occured");
         return NULL;
     }
+
     check_for_py_list(_observations);//checking to see if the python object is actually a list
     n = (int) PyList_Size(_observations);
     d = (int)PyList_Size(PyList_GetItem(_observations, 0));
     observations = get_c_matrix_from_py_lst(_observations,n,d);
     assert_goal(goal);
-
-
      PyObject* T_K = PyList_New((Py_ssize_t)2);
      res  = activate_flag(goal,observations,k,n,d);
      if(is_goal("spk")){
@@ -150,16 +173,18 @@ static PyObject* get_flag(PyObject *self, PyObject *args){
 
 static PyObject* fit(PyObject *self, PyObject *args)
 {
-    PyObject *_observations,*_cluster_list,*_cluster_index_list;
+    PyObject *T,*_cluster_list,*_cluster_index_list,*_observations;
     Py_ssize_t n,k, d;
     int n_c, k_c, d_c;
+    double** T_c;
     double ** c_observations;
     double ** c_cluster_list;
-    double * c_cluster_index_list;
+    int * c_cluster_index_list;
 
-    if(!PyArg_ParseTuple(args, "OOO", &_observations,&_cluster_list,&_cluster_index_list)) { return NULL;}
+    if(!PyArg_ParseTuple(args, "OOOO",&T_c ,&_cluster_list,&_cluster_index_list, &_observations)) { return NULL;}
 
     /* Check that we got lists */
+    check_for_py_list(T);
     check_for_py_list(_observations);
     check_for_py_list(_cluster_list);
     check_for_py_list(_cluster_index_list);
@@ -167,23 +192,21 @@ static PyObject* fit(PyObject *self, PyObject *args)
     n = PyList_Size(_observations);
     k = PyList_Size(_cluster_list);
     d = PyList_Size(PyList_GetItem(_observations, 0));
-
     /*  create c arrays from python lists */
-    c_observations = get_c_matrix_from_py_lst(_observations,n,d);
+    T_c = get_c_matrix_from_py_lst(T,n,k);
     c_cluster_list = get_c_matrix_from_py_lst(_cluster_list,k,d);
-    c_cluster_index_list = get_c_array_from_py_lst(_cluster_index_list,k);//TODO FIX TO BE INT
-
-    n_c =(int) n;
-    k_c =(int) k;
-    d_c =(int) d;
-
-    //simple_kmean(c_observations, c_cluster_list ,c_cluster_index_list, n_c, k_c, d_c);
+    c_cluster_index_list = get_int_c_array_from_py_lst(_cluster_index_list,k);
+    c_observations = get_c_matrix_from_py_lst(_observations,n,d);
+    n_c=(int) n;
+    k_c=(int) k;
+    d_c=(int) d;
+    simple_kmean(T_c, c_cluster_list , c_cluster_index_list, c_observations, n_c, k_c, d_c);//double ** T_mat, double ** T_cluster_list, int * cluster_index_list,double ** observations, int n, int k, int d
 
     _cluster_list =  get_py_lst_from_c_matrix(c_cluster_list ,k,d);
 
     /* free memory */
-    free_observations(c_observations,n,d);
-    free_observations(c_cluster_list,k,d);
+    free_observations(c_observations,n_c,d_c);
+    free_observations(c_cluster_list,k_c,d_c);
     free(c_cluster_index_list);
 
     return _cluster_list;
