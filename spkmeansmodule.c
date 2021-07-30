@@ -65,9 +65,7 @@ static  double* get_c_array_from_py_lst(PyObject * list, Py_ssize_t  d)
     /* NEVER EVER USE malloc/calloc/realloc or free on PyObject */
     double *c_dot = malloc(sizeof(double) * d);
     assert(c_dot != NULL && "Problem in  load_python_list_to_c_array");
-        printf("\n");
     for (i = 0; i < d; i++) {
-        printf("here \n");
         item = PyList_GetItem(list, i); /* DON'T FREE - cause problems */
         c_dot[i] =  PyFloat_AsDouble((item));
 
@@ -173,18 +171,18 @@ static PyObject* get_flag(PyObject *self, PyObject *args){
 
 static PyObject* fit(PyObject *self, PyObject *args)
 {
-    PyObject *T,*_cluster_list,*_cluster_index_list,*_observations;
+    PyObject *_T,*_cluster_list,*_cluster_index_list,*_observations;
     Py_ssize_t n,k, d;
     int n_c, k_c, d_c;
     double** T_c;
-    double ** c_observations;
-    double ** c_cluster_list;
+    double ** c_observations;//TODO change c position to right side
+    double ** c_cluster_list;//TODO change c position to right side
     int * c_cluster_index_list;
 
-    if(!PyArg_ParseTuple(args, "OOOO",&T_c ,&_cluster_list,&_cluster_index_list, &_observations)) { return NULL;}
+    if(!PyArg_ParseTuple(args, "OOOO",&_T ,&_cluster_list,&_cluster_index_list, &_observations)) { return NULL;}
 
     /* Check that we got lists */
-    check_for_py_list(T);
+    check_for_py_list(_T);
     check_for_py_list(_observations);
     check_for_py_list(_cluster_list);
     check_for_py_list(_cluster_index_list);
@@ -193,13 +191,13 @@ static PyObject* fit(PyObject *self, PyObject *args)
     k = PyList_Size(_cluster_list);
     d = PyList_Size(PyList_GetItem(_observations, 0));
     /*  create c arrays from python lists */
-    T_c = get_c_matrix_from_py_lst(T,n,k);
-    c_cluster_list = get_c_matrix_from_py_lst(_cluster_list,k,d);
+    T_c = get_c_matrix_from_py_lst(_T,n,k);
+    c_cluster_list = get_c_matrix_from_py_lst(_cluster_list,k,k);
     c_cluster_index_list = get_int_c_array_from_py_lst(_cluster_index_list,k);
     c_observations = get_c_matrix_from_py_lst(_observations,n,d);
-    n_c=(int) n;
-    k_c=(int) k;
-    d_c=(int) d;
+    n_c = (int) n;
+    k_c = (int) k;
+    d_c = (int) d;
     simple_kmean(T_c, c_cluster_list , c_cluster_index_list, c_observations, n_c, k_c, d_c);//double ** T_mat, double ** T_cluster_list, int * cluster_index_list,double ** observations, int n, int k, int d
 
     _cluster_list =  get_py_lst_from_c_matrix(c_cluster_list ,k,d);
@@ -208,7 +206,7 @@ static PyObject* fit(PyObject *self, PyObject *args)
     free_observations(c_observations,n_c,d_c);
     free_observations(c_cluster_list,k_c,d_c);
     free(c_cluster_index_list);
-
+    //TODO free T_C
     return _cluster_list;
 
 }
