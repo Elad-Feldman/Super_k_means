@@ -1,5 +1,4 @@
 import numpy as np
-import pandas as pd
 import argparse
 import sys
 import time
@@ -27,7 +26,7 @@ def load_data_to_dots(filename):
 def print_dot_values(dot):
     s=""
     for num in dot:
-        s+=str(num)+","
+        s+= "{:10.4f}".format(num) + ","
     print(s[:-1])
 
 def print_dot_list_values(dot_lst):
@@ -66,6 +65,7 @@ def find_initial_clusters(n_dots, k):
         index = find_index_nearest_cluster(weights)
         indices.append(index)
         clusters_list.append(n_dots[index])
+    assert (k== len(indices))
     return indices
 
 def get_cluster_list (observations, indices):
@@ -82,8 +82,6 @@ def check_param(k, goal,filename):
     assert type(filename) is str, "file path must be a string"
 
 def parse2():
-    smart_print(f'Number of arguments:{len(sys.argv)} arguments.')
-    smart_print(f'Argument List: {str(sys.argv)}')
     if len(sys.argv)== 4:
         k = int( sys.argv[1])
         goal = str(sys.argv[2])
@@ -95,6 +93,25 @@ def parse2():
     return k, goal, filename
 
 
+def save_to_out_out(T,flag,filename):
+    i = filename.split("_")
+    print("this is i",i)
+    i = i[2].split(".")
+    print(i)
+    i = int(i[0])
+    result_name = f'Test_files/output_{i}_{flag}.txt'
+    A = np.array(T)
+    A = np.round(A,4)
+    A = A.tolist()
+
+    with open(result_name, 'w') as filehandle:
+        for listitem in A:
+            row = str(listitem)[1:-1]
+            row = row.replace(" ", "")
+            print(row)
+            filehandle.write('%s\n' % row)
+
+
 
 def main():
     T0 = time.process_time()
@@ -102,20 +119,17 @@ def main():
     k, goal, filename = parse2()
     observations = load_data_to_dots(filename)
     assert len(observations) > k, "k must be smaller than number of input vectors"
+    T, k = spkmeans.get_flag(goal, k, observations)
+    return
 
-    T1 = time.process_time()
-    smart_print(f"time load data:{T1 - T0}")
-    T_and_k = spkmeans.get_flag(goal,k,observations)
-    T2 = time.process_time()
     print("done !")
-    smart_print(f"time for {goal}:{T2 - T1}")
-    if goal!="spk":
-        return
-    indices = find_initial_clusters(T_and_k[0], k)
-    clusters = get_cluster_list(observations, indices)
+
+
+    indices = find_initial_clusters(T, k)
+    clusters = get_cluster_list(T, indices)
     t1 = time.process_time()
     smart_print(f"time to read files:{time.process_time() - t1}")
-    spkmeans.fit(T_and_k[0], clusters, indices, observations)
+    spkmeans.fit(T, clusters, indices, observations)
     return
     clusters = np.array()
     clusters = np.round(clusters, 4)
@@ -123,5 +137,6 @@ def main():
     smart_print("-----RESULTS:------")
     print_dot_values(indices)
     print_dot_list_values(clusters)
+    return
 
 main()

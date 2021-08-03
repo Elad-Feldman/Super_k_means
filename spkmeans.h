@@ -21,15 +21,15 @@ typedef  struct Eigen_Obejct{
     int *ranks;
     int mat_size;
 } Eigen;
+
 typedef  struct spk_results{
     int k;
-    double **mat; /*TODO better name */
-    Eigen eigen;
+    double **T;
+    int T_size;
 }spk_results;
 /****** Strcuts END *******/
 
 /****** small function START *******/
-void print_verbose(char* string);
 void my_assert(int  cond);
 int assert_goal(char* goal);
 /****** small function START *******/
@@ -76,8 +76,8 @@ void simple_kmean (double ** T_mat, double ** T_cluster_list, int * cluster_inde
 /************    Lnorm  START    ********/
 void create_adj_mat(double** observations, int n, int d,double** W);
 
-void create_diagonal_degree_mat_ns(double** adj_mat,int n,double** D);
-
+void create_diagonal_degree_mat(double** adj_mat,int n,double** D);
+void D_sqrt(double** D,int n);
 void create_L_norm(double** D, double** W, int n, double** L );
 /************    Lnorm  END    ********/
 

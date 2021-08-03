@@ -1,10 +1,13 @@
 from setuptools import setup, Extension
 
+##   python setup.py build_ext --inplace
+
 """
 A minimalist setup is shown.
 """
 module = Extension("spkmeans",
                    sources=[
+                       'spkmeans.c',
                        'spkmeansmodule.c'
                    ])
 setup(name='spkmeans',
