@@ -129,7 +129,7 @@ def main():
     clusters = get_cluster_list(T, indices)
     t1 = time.process_time()
     print(f"K:{k}")
-    spkmeans.fit(T, clusters, indices, observations)
+    spkmeans.fit(T, k, clusters, indices, observations)
     print("done !")
     return
 

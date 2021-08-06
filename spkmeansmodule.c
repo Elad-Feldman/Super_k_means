@@ -173,14 +173,15 @@ static PyObject* get_flag(PyObject *self, PyObject *args){
 static PyObject* fit(PyObject *self, PyObject *args)
 {
     PyObject *_T, *_cluster_list, *_cluster_index_list, *_observations;
-    Py_ssize_t n,k, d;
+    Py_ssize_t n, k, d;
+
     int n_c, k_c, d_c;
     double** T_c;
     double ** c_observations;//TODO change c position to right side
     double ** c_cluster_list;//TODO change c position to right side
     int * c_cluster_index_list;
 
-    if(!PyArg_ParseTuple(args, "OOOO",&_T, &_cluster_list, &_cluster_index_list, &_observations)) { return NULL;}
+    if(!PyArg_ParseTuple(args, "OiOOO",&_T, &k_c, &_cluster_list, &_cluster_index_list, &_observations)) { return NULL;}
 
     /* Check that we got lists */
     check_for_py_list(_T);
@@ -189,13 +190,12 @@ static PyObject* fit(PyObject *self, PyObject *args)
     check_for_py_list(_cluster_index_list);
 
     n = PyList_Size(_T);
-    k = PyList_Size(PyList_GetItem(_T, 0));
+    k = (Py_ssize_t)k_c;
     d = PyList_Size(PyList_GetItem(_observations, 0));
     /*  create c arrays from python lists */
     T_c = get_c_matrix_from_py_lst(_T,n,k);
     printf("\n HERE!!  k:%d \n",k);
     c_cluster_list = get_c_matrix_from_py_lst(_cluster_list,k,k);
-    printf("\n HERE  B \n");
     c_cluster_index_list = get_int_c_array_from_py_lst(_cluster_index_list,k);
     c_observations = get_c_matrix_from_py_lst(_observations,n,d);
     n_c = (int) n;

@@ -810,9 +810,8 @@ spk_results activate_flag(char* goal,double** observations , int k, int n, int d
     W = create_matrix(n, n);
     D = create_matrix(n, n);
     L = create_matrix(n, n);
-    U  = create_matrix(n, k);
     my_assert(U != NULL);
-    T = create_matrix(n,k);
+
 
     create_adj_mat(observations,n,d,W);
     create_diagonal_degree_mat(W,n,D);
@@ -825,19 +824,14 @@ spk_results activate_flag(char* goal,double** observations , int k, int n, int d
 
     if (k==0) //TODO what about k<0 ?
         k = eigengap_huristic(eigen);
-
-
+    T = create_matrix(n,k);
+    U  = create_matrix(n, k);
     for (i=0; i<n; i++)
     {
         for (j=0; j<k; j++)
             U[i][j] = eigen.vectors[j][i];
     }
-
     renorm_matrix_rows(U, n, T);
-
-
-
-
     free_matrix(W,n);
     free_matrix(D,n);
     free_matrix(L,n);
