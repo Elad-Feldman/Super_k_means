@@ -1,15 +1,16 @@
 #include "spkmeans.h"
 
-/* gcc spkmeans.c && gcc  -o spkmeans spkmeans.c && spkmeans  5 spk  dots_10.txt*/
+/* gcc spkmeans.c && gcc  -o spkmeans spkmeans.c && spkmeans  5 spk  dots_10.txt */
 
 #define Ver 0    \
 /* TODO  to zero before submitting */
 #define print_verbose(x) if(Ver && printf(x)){}
+#define my_assert(cond) assert( (cond) && "An Error Has Occured" )
 /****** small function START *******/
-void my_assert(int  cond)
+void my_assert2(int  cond)
 {
     if (!cond){
-        printf("An Error Has Occured");
+        printf("hello");
         assert(0);
     }
 
@@ -29,6 +30,7 @@ int assert_goal(char* goal)
         return 1;
      printf("Invalid Input");
      assert(0);
+     return 0;
 
 
 
@@ -182,26 +184,27 @@ void free_matrix( double  ** A, int n)
     A = NULL;
 }
 
-void inplace_transpose_mat(double** mat, int n, int D){
+void inplace_transpose_mat(double** mat, int rows, int cols){
+    /* works for ros=cols only */
    double** mat_T;
-    mat_T = transpose_mat(mat,n,D);
-    copy_matrix(mat,mat_T,n);
-    free_matrix(mat_T,n);
+   mat_T = transpose_mat(mat,rows,cols);
+   copy_matrix(mat,mat_T,rows,cols);
+   free_matrix(mat_T,rows);
 
 
 }
 
-double** transpose_mat(double** mat, int n, int D)
+double** transpose_mat(double** mat, int n, int d)
 {
     int i, j;
     double** mat_T;
     assert(mat);
     assert(n > 0);
-    assert(D > 0);
-    mat_T = create_matrix(D, n);
+    assert(d > 0);
+    mat_T = create_matrix(d, n);
     for (i = 0; i < n; i++)
     {
-        for (j = 0; j < D; j++)
+        for (j = 0; j < d; j++)
         {
             mat_T[j][i] = mat[i][j];
         }
@@ -227,7 +230,7 @@ void mult_matrix(double** A, double** B, double ** C ,int n) {
     free_matrix(B_T,n);
 }
 
-void copy_matrix(double** A, double** B ,int n){
+void copy_matrix(double** A, double** B ,int n,int m){
     /* copy B into A, B override A */
     int i, j;
     assert(A);
@@ -235,7 +238,7 @@ void copy_matrix(double** A, double** B ,int n){
     assert(n > 0);
     for (i = 0; i < n; i++)
     {
-        for (j = 0; j < n; j++)
+        for (j = 0; j < m; j++)
             A[i][j] =  B[i][j];
 
     }
@@ -342,7 +345,7 @@ void update_cluster_center(double* dot, double * center,int cluster_size,int d,i
 double** get_init_clusters_list(double** T,int k){
     /* get the first k rows of T */
     double** cluster_list = create_matrix(k,k);
-    copy_matrix(cluster_list,T,k);
+    copy_matrix(cluster_list,T,k,k);
     return cluster_list;
 }
 int * init_clusters_indexes(int k){
@@ -413,8 +416,7 @@ void simple_kmean (double ** T_mat, double ** T_cluster_list, int * cluster_inde
 
 
     print_vector_int(cluster_index_list,k);
-    print_mat(T_cluster_list,n,d);
-
+    print_mat(T_cluster_list,k,k);
     free(T_at);
     free(move_T_to);
     free(T_cluster_size);
@@ -571,13 +573,13 @@ double sum_square_elements_off_diag(double ** A,int n){
     return sum;
 }
 int check_convergence(double** A,double** A1,int n){
-    double sum_A =sum_square_elements_off_diag(A, n);
-    double sum_A1 = sum_square_elements_off_diag(A1,n);
-    if(sum_A-sum_A1<=0.001){
+    double EPSILON =  0.001 ;
+    double sum_A = sum_square_elements_off_diag( A, n );
+    double sum_A1 = sum_square_elements_off_diag( A1, n );
+    if( sum_A-sum_A1 <= EPSILON )
         return 1;
-    }else{
+    else
         return 0;
-    }
 }
 /************    Jacobi  END    ********/
 
@@ -637,7 +639,7 @@ Eigen find_eigen_vectors_and_values(double** L, int n){
     my_assert(L != NULL);
     my_assert(n>0);
     A = create_matrix(n,n);
-    copy_matrix(A,L,n);
+    copy_matrix(A,L,n,n);
     print_verbose("start: find eigen vectors");
 
     V = create_Id_matrix(n);
@@ -660,9 +662,9 @@ Eigen find_eigen_vectors_and_values(double** L, int n){
         mult_matrix(A_tmp,P,A_f,n); /* A_f = pT*A*p  */
 
         convergence = check_convergence(A,A_f,n);
-        copy_matrix(A,A_f,n);
+        copy_matrix(A,A_f,n,n);
         mult_matrix(P,V,V_tmp,n);
-        copy_matrix(V,V_tmp,n);
+        copy_matrix(V,V_tmp,n,n);
         free_matrix(P,n);
         free_matrix(P_T,n);
     }
@@ -766,7 +768,7 @@ void start_jacobi(double** observations , int n, double*** E)
 spk_results activate_flag(char* goal,double** observations , int k, int n, int d)
 {
     /* run all the flags, that are not spk */
-    int i;
+    int i,j;
     spk_results res;
     Eigen eigen;
     double **W ,**D ,**L, **E, **U, **T;
@@ -808,7 +810,7 @@ spk_results activate_flag(char* goal,double** observations , int k, int n, int d
     W = create_matrix(n, n);
     D = create_matrix(n, n);
     L = create_matrix(n, n);
-    U  = (double**)  calloc(n, sizeof (double *)) ;
+    U  = create_matrix(n, k);
     my_assert(U != NULL);
     T = create_matrix(n,k);
 
@@ -824,9 +826,15 @@ spk_results activate_flag(char* goal,double** observations , int k, int n, int d
     if (k==0) //TODO what about k<0 ?
         k = eigengap_huristic(eigen);
 
+
     for (i=0; i<n; i++)
-        U[i] =eigen.vectors[i];
+    {
+        for (j=0; j<k; j++)
+            U[i][j] = eigen.vectors[j][i];
+    }
+
     renorm_matrix_rows(U, n, T);
+
 
 
 
@@ -938,6 +946,7 @@ int main(int argc, char* argv[])
         T_clusters_list = get_init_clusters_list(Res.T,k);
         T_clusters_indexes = init_clusters_indexes(k);
         simple_kmean(Res.T, T_clusters_list, T_clusters_indexes,observations,n,k,d);
+
         free_matrix(T_clusters_list,k);
         free(T_clusters_indexes);
     }
@@ -948,8 +957,8 @@ int main(int argc, char* argv[])
     free(goal);
     free(file_name);
     free_matrix(observations, n);
-    printf("\n  C done !");
     free_matrix(Res.T,Res.T_size );
+    printf("\n  C done !");
     return 0;
 }
 

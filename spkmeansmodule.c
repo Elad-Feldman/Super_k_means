@@ -141,7 +141,6 @@ static PyObject* get_flag(PyObject *self, PyObject *args){
     PyObject* _observations, * _T;
     double** observations;
     int n;
-    Py_ssize_t n_tmp;
     int d;
     spk_results res;
     if(!PyArg_ParseTuple(args, "siO",&goal,&k ,&_observations)) {//getting data from python
@@ -194,14 +193,16 @@ static PyObject* fit(PyObject *self, PyObject *args)
     d = PyList_Size(PyList_GetItem(_observations, 0));
     /*  create c arrays from python lists */
     T_c = get_c_matrix_from_py_lst(_T,n,k);
+    printf("\n HERE!!  k:%d \n",k);
     c_cluster_list = get_c_matrix_from_py_lst(_cluster_list,k,k);
+    printf("\n HERE  B \n");
     c_cluster_index_list = get_int_c_array_from_py_lst(_cluster_index_list,k);
     c_observations = get_c_matrix_from_py_lst(_observations,n,d);
     n_c = (int) n;
     k_c = (int) k;
     d_c = (int) d;
+
     simple_kmean(T_c, c_cluster_list , c_cluster_index_list, c_observations, n_c, k_c, d_c);//double ** T_mat, double ** T_cluster_list, int * cluster_index_list,double ** observations, int n, int k, int d
-    printf("\n HERE  A \n");
     _cluster_list =  get_py_lst_from_c_matrix(c_cluster_list ,k,d);
 
     /* free memory */

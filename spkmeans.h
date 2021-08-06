@@ -54,7 +54,7 @@ double** create_matrix(int n,int d);
 void free_matrix(double** A,int n);
 double** transpose_mat(double** mat, int n, int D);
 void mult_matrix(double** A, double** B, double ** C ,int n);
-void copy_matrix(double** A, double** B ,int n);
+void copy_matrix(double** A, double** B ,int n, int m);
 void sub_matrix(double** A, double** B, double ** C, int n);
 void print_mat( double  ** mat, int n, int d);
 double** create_Id_matrix(int n);

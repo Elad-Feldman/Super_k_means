@@ -120,23 +120,17 @@ def main():
     observations = load_data_to_dots(filename)
     assert len(observations) > k, "k must be smaller than number of input vectors"
     T, k = spkmeans.get_flag(goal, k, observations)
-    return
 
-    print("done !")
+
+
 
 
     indices = find_initial_clusters(T, k)
     clusters = get_cluster_list(T, indices)
     t1 = time.process_time()
-    smart_print(f"time to read files:{time.process_time() - t1}")
+    print(f"K:{k}")
     spkmeans.fit(T, clusters, indices, observations)
-    return
-    clusters = np.array()
-    clusters = np.round(clusters, 4)
-    smart_print(f"time to kmean files:{time.process_time() - t1}")
-    smart_print("-----RESULTS:------")
-    print_dot_values(indices)
-    print_dot_list_values(clusters)
+    print("done !")
     return
 
 main()
