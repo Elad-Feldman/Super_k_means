@@ -160,7 +160,7 @@ static PyObject* get_flag(PyObject *self, PyObject *args){
 
      res  = activate_flag(goal,observations,k, n, d);
 
-     printf("C fit: n=%d,  k=%d\n",res.T_size, res.k);
+     printf("C fit: n=%d,  k=%d\n",res.T_size, res.k); /* TODO DELETE */
      _T = get_py_lst_from_c_matrix(res.T ,res.T_size, res.k);
      PyList_SetItem(T_K,0, _T );
      PyList_SetItem(T_K,1,Py_BuildValue("i",res.k));

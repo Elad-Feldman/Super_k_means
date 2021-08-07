@@ -774,10 +774,10 @@ void start_jacobi(double** observations , int n, double*** E)
 {
     int i;
     Eigen eigen = find_eigen_vectors_and_values(observations, n);
-
-    Qsort_eigen_values(eigen.values,eigen.ranks,0,n-1);    /* TODO remove at the end, this is here just for testing */
-    inplace_transpose_mat(eigen.vectors,n,n); /*  now each row is a vector */
-    re_order_matrix_by_indces(eigen.vectors, eigen.ranks, n);/* TODO remove at the end, this is here just for testing */
+    /* TODO print here to check if sorting of egien values works */
+     // Qsort_eigen_values(eigen.values,eigen.ranks,0,n-1);    /* TODO remove at the end, this is here just for testing */
+     //inplace_transpose_mat(eigen.vectors,n,n); /*  now each row is a vector */
+ //   re_order_matrix_by_indces(eigen.vectors, eigen.ranks, n);  */ /* TODO remove at the end, this is here just for testing */
 
 
 

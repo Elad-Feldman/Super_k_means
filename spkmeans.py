@@ -126,9 +126,9 @@ def is_vectors_equals(a,b):
 def compare_eigen_vectors(A,vectors,values):
     n = len(A)
     np_A = np.matrix(A)
-    for i in range(n):
-        A_v = np.asarray(np_A @ (vectors[i]).round(6)).reshape(-1)  # A * v = lambda * v
-        lambda_v = (vectors[i] * values[i]).round(6)
+    for i in range(n):  # A * v = lambda * v
+        A_v = np.asarray(np_A @ (vectors[i]).round(6)).reshape(-1)
+        lambda_v = ( values[i] *vectors[i] ).round(6)
         if not is_vectors_equals(A_v, lambda_v):
             print("Diff eigen Vectors !")
             print_vector(A_v)
@@ -137,6 +137,7 @@ def compare_eigen_vectors(A,vectors,values):
 def test_eigen(A,T):
     n = len(A)
     np_val,np_vec = np.linalg.eigh(A)
+    print(np_vec.round(4).transpose())
 
     # Comapre eigen values
     np_val_s = np.sort(np_val).round(4)
