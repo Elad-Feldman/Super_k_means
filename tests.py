@@ -1,10 +1,10 @@
 import os
 import  numpy as np
 os.system( "python  setup.py build_ext --inplace")
+for i in range(1):
+    print(f"=================={i}========================")
+    os.system(f"python spkmeans.py 0 jacobi Test_files/input_J_{i}.txt")
 
-os.system(f"python spkmeans.py 3 spk dots_10.txt")
-#for flag in ["wam","ddg","lnorm","jacobi","spk"]:
- #   print(flag)
-  #  os.system(f"python spkmeans.py 3 {flag} dots_10.txt")
+print("done")
 
 

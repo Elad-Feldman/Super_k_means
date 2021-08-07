@@ -37,6 +37,12 @@ int assert_goal(char* goal)
 }
 /****** small function START *******/
 
+double fix_neg_zero(double num){
+    double EPS = 0.00000001;
+    if ((num < EPS) && (-1* num > -1*EPS))
+        return 0;
+    return num;
+}
 
 
 /*************** Vectors  START ******************/
@@ -56,15 +62,27 @@ double dot_mult_vector(double *a, double *b, int n) {
 }
 
 double find_vec_norm(double* a, int n) {
-    int i;
+    int j;
     double sum;
+    double tmp;
     assert(a);
     assert(n > 0);
     sum = 0;
-    for ( i = 0; i < n; i++)
+    for ( j = 0; j < n; j++)
     {
-        sum += (a[i] * a[i]);
+        tmp = pow(a[j],2);
+        if (a[j] < -10){
+            printf("\na[j]:  %.4f",a[j]);
+            printf("\ntmp :  %.4f",tmp);
+            assert(0);
+
+        }
+
+
+        sum += tmp;
     }
+
+    assert(sum>0);
     return sqrt(sum);
 }
 
@@ -139,19 +157,21 @@ void swap_double_pointers(double **a, double **b)
 }
 
 double* renormlized_vector(double* a, int n) {
-    int i;
+    int j;
     double norm;
     double* norm_vec;
     my_assert(a != NULL);
     my_assert(n > 0);
     norm = find_vec_norm(a, n);
     norm_vec = calloc(n, sizeof(double));
+
+
     my_assert(norm_vec != NULL);
     if (norm == 0) {
         return norm_vec;
     }
-    for (i = 0; i < n; i++) {
-        norm_vec[i] = (a[i] / norm);
+    for (j = 0; j < n; j++) {
+        norm_vec[j] = (a[j] / norm);
     }
     return norm_vec;
 }
@@ -285,11 +305,12 @@ void re_order_matrix_by_indces(double** A,int* indces, int n)
     }
 }
 
-void renorm_matrix_rows(double** U, int n, double** T)
+void renorm_matrix_rows(double** U, int n,int k, double** T)
 {
     int i;
+
     for (i = 0; i < n; i++)
-        T[i]= renormlized_vector(U[i], n);
+        T[i]= renormlized_vector(U[i], k);
 }
 /*************** Matrix END ******************/
 
@@ -408,11 +429,6 @@ void simple_kmean (double ** T_mat, double ** T_cluster_list, int * cluster_inde
             }
         }
     }
-
-    /**** create the cluster for observations ****/
-
-
-
 
 
     print_vector_int(cluster_index_list,k);
@@ -647,7 +663,7 @@ Eigen find_eigen_vectors_and_values(double** L, int n){
     A_tmp = create_matrix(n,n);
     A_f = create_matrix(n,n);
 
-    max_iter = 100;
+    max_iter = 400;
     convergence = 0;
     i = 0;
 
@@ -758,8 +774,13 @@ void start_jacobi(double** observations , int n, double*** E)
 {
     int i;
     Eigen eigen = find_eigen_vectors_and_values(observations, n);
-    inplace_transpose_mat(eigen.vectors,n,n); /* each row would be a eigen vector */
-    /* TODO sort? not sure */
+
+    Qsort_eigen_values(eigen.values,eigen.ranks,0,n-1);    /* TODO remove at the end, this is here just for testing */
+    inplace_transpose_mat(eigen.vectors,n,n); /*  now each row is a vector */
+    re_order_matrix_by_indces(eigen.vectors, eigen.ranks, n);/* TODO remove at the end, this is here just for testing */
+
+
+
     *E  = create_matrix(n+1, n);
     eigen_to_matrix(eigen,*E,n);
 }
@@ -768,11 +789,13 @@ void start_jacobi(double** observations , int n, double*** E)
 spk_results activate_flag(char* goal,double** observations , int k, int n, int d)
 {
     /* run all the flags, that are not spk */
+
     int i,j;
     spk_results res;
     Eigen eigen;
     double **W ,**D ,**L, **E, **U, **T;
     res.T_size = n;
+    res.k = n;
 
 
 
@@ -820,18 +843,25 @@ spk_results activate_flag(char* goal,double** observations , int k, int n, int d
     eigen = find_eigen_vectors_and_values(L, n);
 
     Qsort_eigen_values(eigen.values,eigen.ranks,0,n-1);
-    re_order_matrix_by_indces(eigen.vectors, eigen.ranks, n); /* TODO are the rows the eigenvectors or the colmuns ? */
+    inplace_transpose_mat(eigen.vectors,n,n); /*  now each row is a vector */
+    re_order_matrix_by_indces(eigen.vectors, eigen.ranks, n);
+
 
     if (k==0) //TODO what about k<0 ?
         k = eigengap_huristic(eigen);
+
     T = create_matrix(n,k);
     U  = create_matrix(n, k);
+
     for (i=0; i<n; i++)
-    {
-        for (j=0; j<k; j++)
-            U[i][j] = eigen.vectors[j][i];
-    }
-    renorm_matrix_rows(U, n, T);
+        {
+            for (j=0; j<k; j++) {
+                U[i][j] = eigen.vectors[j][i];
+            }
+        }
+    renorm_matrix_rows(U, n,k, T);
+  /*  printf("C: n=%d,  k=%d\n",n,k);
+    print_mat(T,n,k); */
     free_matrix(W,n);
     free_matrix(D,n);
     free_matrix(L,n);
@@ -904,9 +934,28 @@ Tuple2 load_observations_from_file(double** observations, char* file_name)
 
 }
 
+
+
+/***** TEST QSORT ******/
+void t1()
+{
+    double* a  =(double*) calloc(4,sizeof(double));
+    int* ind  =(int*) calloc(4,sizeof(int));
+    a[0]= 10.0; a[1] = 2.0; a[2] = 30; a[3] = 15;
+    ind[0]= 0; ind[1] = 1; ind[2] = 2; ind[3] = 3;
+
+
+    printf("\n========================================\n");
+    Qsort_eigen_values(a,ind,0,3);
+    print_vector(a,4);
+   printf("\n========================================\n");
+   free(a);
+   free(ind);
+}
+
 int main(int argc, char* argv[])
 {
-
+    //t1();
     int k,n,d;
     char*  goal;
     char*  file_name;
@@ -927,16 +976,14 @@ int main(int argc, char* argv[])
     my_assert(k>=0); /* TODO change massage */
 
     assert_goal(goal);
-    printf("k: %d\ngoal %s\nfile_name: %s\n",k,goal,file_name);
+   // printf("=========\nk:%d\ngoal %s\nfile_name: %s\n==========\n",k,goal,file_name);
     sizes = load_observations_from_file(observations, file_name);
     n=sizes.i;    d=sizes.j;
 
     Res = activate_flag( goal, observations , k,  n, d);
-    print_verbose("\nfinish activate_flag\n");
     if(is_goal("spk")){
-        k=Res.k;
-        printf("found k: %d \n",Res.k);
-        printf("create full spk here\n");
+        k = Res.k;
+      //  printf("found k: %d \n",Res.k);
         T_clusters_list = get_init_clusters_list(Res.T,k);
         T_clusters_indexes = init_clusters_indexes(k);
         simple_kmean(Res.T, T_clusters_list, T_clusters_indexes,observations,n,k,d);

@@ -59,7 +59,7 @@ void sub_matrix(double** A, double** B, double ** C, int n);
 void print_mat( double  ** mat, int n, int d);
 double** create_Id_matrix(int n);
 void re_order_matrix_by_indces(double** A,int* indces, int n);
-void renorm_matrix_rows(double** U, int n, double** T);
+void renorm_matrix_rows(double** U, int n,int k, double** T);
 /*************** Matrix functions  END ******************/
 
 /*************** kmean  START ******************/

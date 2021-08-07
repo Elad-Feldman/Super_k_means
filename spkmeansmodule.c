@@ -139,15 +139,17 @@ static PyObject* get_flag(PyObject *self, PyObject *args){
    char* goal;
     int k;
     PyObject* _observations, * _T;
+    PyObject* T_K;
     double** observations;
     int n;
     int d;
     spk_results res;
+    T_K = PyList_New( (Py_ssize_t) 2 );
+    _T =  Py_None;
     if(!PyArg_ParseTuple(args, "siO",&goal,&k ,&_observations)) {//getting data from python
         printf("An Error Has Occured");
         return NULL;
     }
-
     check_for_py_list(_observations);//checking to see if the python object is actually a list
     n = (int) PyList_Size(_observations);
     d = (int)PyList_Size(PyList_GetItem(_observations, 0));
@@ -156,16 +158,15 @@ static PyObject* get_flag(PyObject *self, PyObject *args){
     assert_goal(goal);
 
 
-     PyObject* T_K = PyList_New((Py_ssize_t)2);
      res  = activate_flag(goal,observations,k, n, d);
 
-     _T = get_py_lst_from_c_matrix(res.T ,res.T_size, n );
+     printf("C fit: n=%d,  k=%d\n",res.T_size, res.k);
+     _T = get_py_lst_from_c_matrix(res.T ,res.T_size, res.k);
      PyList_SetItem(T_K,0, _T );
-     PyList_SetItem(T_K,1,Py_BuildValue("i",k));
+     PyList_SetItem(T_K,1,Py_BuildValue("i",res.k));
 
-     // TODO free over
-      // free_matrix(observations, n);
-       return T_K;
+     free_matrix(observations, n);
+     return T_K;
     }
 
 
@@ -194,7 +195,6 @@ static PyObject* fit(PyObject *self, PyObject *args)
     d = PyList_Size(PyList_GetItem(_observations, 0));
     /*  create c arrays from python lists */
     T_c = get_c_matrix_from_py_lst(_T,n,k);
-    printf("\n HERE!!  k:%d \n",k);
     c_cluster_list = get_c_matrix_from_py_lst(_cluster_list,k,k);
     c_cluster_index_list = get_int_c_array_from_py_lst(_cluster_index_list,k);
     c_observations = get_c_matrix_from_py_lst(_observations,n,d);

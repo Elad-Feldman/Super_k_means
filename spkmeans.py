@@ -13,6 +13,10 @@ def smart_print(msg):
     if print_time:
         print(msg)
 
+def is_zero_EPS(num,eps=0.0000005):
+    return num < eps and -num > -eps
+
+
 def load_data_to_dots(filename):
     dots_list = []
     file = open(filename, 'r')
@@ -23,15 +27,15 @@ def load_data_to_dots(filename):
         dots_list.append(dot)
     return dots_list
 
-def print_dot_values(dot):
+def print_vector(dot):
     s=""
     for num in dot:
-        s+= "{:10.4f}".format(num) + ","
+        s+= "{:2.4f}".format(num) + ","
     print(s[:-1])
 
-def print_dot_list_values(dot_lst):
-    for dot in dot_lst:
-        print_dot_values(dot)
+def print_matrix(mat):
+    for row in mat:
+        print_vector(row)
 
 
 
@@ -65,7 +69,7 @@ def find_initial_clusters(n_dots, k):
         index = find_index_nearest_cluster(weights)
         indices.append(index)
         clusters_list.append(n_dots[index])
-    assert (k== len(indices))
+    assert (k == len(indices))
     return indices
 
 def get_cluster_list (observations, indices):
@@ -111,26 +115,59 @@ def save_to_out_out(T,flag,filename):
             print(row)
             filehandle.write('%s\n' % row)
 
+def is_vectors_equals(a,b):
+    if len(a) != len(b):
+        return False
+    for e,v in zip(a,b):
+        if round(e,4) != round(v,4):
+            return False
+    return True
+
+def compare_eigen_vectors(A,vectors,values):
+    n = len(A)
+    np_A = np.matrix(A)
+    for i in range(n):
+        A_v = np.asarray(np_A @ (vectors[i]).round(6)).reshape(-1)  # A * v = lambda * v
+        lambda_v = (vectors[i] * values[i]).round(6)
+        if not is_vectors_equals(A_v, lambda_v):
+            print("Diff eigen Vectors !")
+            print_vector(A_v)
+            print_vector(lambda_v)
+
+def test_eigen(A,T):
+    n = len(A)
+    np_val,np_vec = np.linalg.eigh(A)
+
+    # Comapre eigen values
+    np_val_s = np.sort(np_val).round(4)
+    my_val = np.sort(T[0]).round(4)
+    if not is_vectors_equals(np_val_s,my_val):
+        print("Diff eigen values !")
+        print_vector(np_val_s)
+        print_vector(my_val)
+
+    print("start numpy values:")
+    compare_eigen_vectors(A,np_vec.transpose(),np_val) # compre numpy values, sainty check
+    print("start our values:")
+    compare_eigen_vectors(A, np.array(T[1:]), T[0])  # compre numpy values, sainty check // CHECK SORT !
 
 
 def main():
     T0 = time.process_time()
     np.random.seed(0)
     k, goal, filename = parse2()
+
     observations = load_data_to_dots(filename)
     assert len(observations) > k, "k must be smaller than number of input vectors"
-    T, k = spkmeans.get_flag(goal, k, observations)
+    T,k = spkmeans.get_flag(goal, k, observations)
+    test_eigen(observations,T)
 
-
-
-
-
-    indices = find_initial_clusters(T, k)
-    clusters = get_cluster_list(T, indices)
-    t1 = time.process_time()
-    print(f"K:{k}")
-    spkmeans.fit(T, k, clusters, indices, observations)
-    print("done !")
+    if goal=="spk":
+        #print(f"Py: n={len(observations)},  k={k}")
+        indices = find_initial_clusters( T, k)
+        clusters = get_cluster_list( T, indices)
+        spkmeans.fit(T, k, clusters, indices, observations)
+    #print("done !")
     return
 
 main()
