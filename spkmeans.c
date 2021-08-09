@@ -679,7 +679,7 @@ Eigen find_eigen_vectors_and_values(double** L, int n){
 
         convergence = check_convergence(A,A_f,n);
         copy_matrix(A,A_f,n,n);
-        mult_matrix(P,V,V_tmp,n);
+        mult_matrix(V,P,V_tmp,n);//TODO CHECK
         copy_matrix(V,V_tmp,n,n);
         free_matrix(P,n);
         free_matrix(P_T,n);
@@ -780,7 +780,7 @@ void start_jacobi(double** observations , int n, double*** E)
  //   re_order_matrix_by_indces(eigen.vectors, eigen.ranks, n);  */ /* TODO remove at the end, this is here just for testing */
 
 
-
+    inplace_transpose_mat(eigen.vectors,n,n);
     *E  = create_matrix(n+1, n);
     eigen_to_matrix(eigen,*E,n);
 }
@@ -822,7 +822,7 @@ spk_results activate_flag(char* goal,double** observations , int k, int n, int d
     if (is_goal("jacobi"))
     {
         start_jacobi(observations,n,&E); /*ToDO make it work damigt */
-
+        //start_jacobi(L,n,&E);
         res.T_size = n + 1;
         res.T = E;
         print_mat(res.T,res.T_size,n);

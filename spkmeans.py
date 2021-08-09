@@ -137,11 +137,19 @@ def compare_eigen_vectors(A,vectors,values):
 def test_eigen(A,T):
     n = len(A)
     np_val,np_vec = np.linalg.eigh(A)
-    print(np_vec.round(4).transpose())
+    #print(np_vec.round(4).transpose())
 
     # Comapre eigen values
     np_val_s = np.sort(np_val).round(4)
     my_val = np.sort(T[0]).round(4)
+    print(my_val)
+    x = np.matmul(np.array(A), np.array([0.3851,0.5595,0.7339]))
+    y = np.multiply(np.array([9.6235]),np.array([0.3851,0.5595,0.7339])).round(4)
+    # [-0.3146 -0.0548  0.205 ]
+    print("\n Av: ")
+    print(x)
+    print("\n d*v: ")
+    print(y)
     if not is_vectors_equals(np_val_s,my_val):
         print("Diff eigen values !")
         print_vector(np_val_s)
