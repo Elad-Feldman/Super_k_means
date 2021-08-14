@@ -48,7 +48,7 @@ def create_test_file(filename,is_symatric):
             filehandle.write('%s\n' % row)
 
 def create_output():
-    flags = ["wam","ddg","lnorm","spk"]
+    flags = ["spk"]
     for i in range(ITER):
         filename = f'Test_files/input_{i}.txt'
         create_test_file(filename, False)
@@ -57,7 +57,7 @@ def create_output():
 
             result_name = f'Test_files/output_{i}_{flag}.txt'
 
-            cmd = f"python spkmeans.py 0 {flag} {filename} > {result_name} "
+            cmd = f"python spkmeans.py 0 {flag} {filename} " # > {result_name}
             print(flag,end =" ")
             start = time.time()
             os.system(cmd)
@@ -130,6 +130,6 @@ def test_3_basic(is_py):
 #test_3_basic(True)
 #create_output_symatric()
 
-#create_output()
+create_output()
 
-create_output_symatric()
+#create_output_symatric()

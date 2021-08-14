@@ -802,10 +802,13 @@ int  eigengap_huristic(Eigen eigen){
     m =  (int ) eigen.mat_size / 2; /* it said that k<n/2 */
     max = - 1 ;
     k = 0;
-    for (i=0 ; i <= m ; i++){
+    for (i = 0 ; i < m ; i++){
         delta_i = abs_d (eigen.values[i] - eigen.values[i+1]) ;
         if (delta_i > max)
+        {
+            max = delta_i ;
             k=i+1;
+        }
 
     }
     my_assert(k>0);
@@ -983,8 +986,7 @@ spk_results activate_flag(char* goal,double** observations , int k, int n, int d
     mergeSort(eigen.values,eigen.ranks,0,n-1);
     inplace_transpose_mat(eigen.vectors,n,n); /*  now each row is a vector */
     re_order_matrix_by_indces(eigen.vectors, eigen.ranks, n);
-
-
+    printf("\n");
     if (k==0) //TODO what about k<0 ?
         k = eigengap_huristic(eigen);
 
