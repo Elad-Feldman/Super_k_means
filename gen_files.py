@@ -2,7 +2,7 @@ import random
 import os
 import numpy as np
 import time
-N = 12
+N = 20
 D = 9
 MID = 400
 
@@ -38,6 +38,7 @@ def create_test_file(filename,is_symatric):
     d = random.randint(4, D)
     d =  n if is_symatric  else d
     A = create_matrix_4digits(n,d)
+    print(f"n= {n}, d={d}",end=" ")
 
 
     with open(filename, 'w') as filehandle:
@@ -47,7 +48,7 @@ def create_test_file(filename,is_symatric):
             filehandle.write('%s\n' % row)
 
 def create_output():
-    flags = ["spk"]
+    flags = ["wam","ddg","lnorm","spk"]
     for i in range(ITER):
         filename = f'Test_files/input_{i}.txt'
         create_test_file(filename, False)
@@ -55,9 +56,14 @@ def create_output():
         for flag in flags:
 
             result_name = f'Test_files/output_{i}_{flag}.txt'
-            cmd = f"python spkmeans.py 2 {flag} {filename} > {result_name} "
-            print(cmd)
+
+            cmd = f"python spkmeans.py 0 {flag} {filename} > {result_name} "
+            print(flag,end =" ")
+            start = time.time()
             os.system(cmd)
+            end = time.time()
+            dif = round(end- start,2)
+            print(f"time: {dif }")
 
 
 def create_output_symatric():
@@ -67,8 +73,12 @@ def create_output_symatric():
         create_test_file(filename, True)
         result_name = f'Test_files/output_J_{i}.txt'
         cmd = f"python spkmeans.py 3 {flag} {filename} > {result_name} "
-        print(cmd)
+        print(flag, end=" ")
+        start = time.time()
         os.system(cmd)
+        end = time.time()
+        dif = round(end - start, 2)
+        print(f"time: {dif}")
 
 
 def compre_Mat(A,B):
@@ -106,7 +116,7 @@ def test_3_basic(is_py):
                 cmd = f"spkmeans 1 {flag}  {filename} "
             os.system(cmd + "> tmp.txt")
             dots = load_data_to_dots("tmp.txt")
-            for j in range(10):
+            for j in range(3):
                 os.system(cmd + "> tmp.txt")
                 dots_i = load_data_to_dots("tmp.txt")
                 STATUS = "FAIL"
@@ -118,7 +128,8 @@ def test_3_basic(is_py):
                 print(f"{STATUS}:  flag: {flag}, {i}: {j}")
 
 #test_3_basic(True)
-create_output_symatric()
+#create_output_symatric()
 
 #create_output()
-#create_output_symatric()
+
+create_output_symatric()

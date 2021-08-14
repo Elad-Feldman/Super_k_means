@@ -36,6 +36,7 @@ def print_vector(dot):
 def print_matrix(mat):
     for row in mat:
         print_vector(row)
+    print("------------------------")
 
 
 
@@ -119,7 +120,7 @@ def is_vectors_equals(a,b):
     if len(a) != len(b):
         return False
     for e,v in zip(a,b):
-        if round(e,4) != round(v,4):
+        if abs(e-v) > 0.0001:
             return False
     return True
 
@@ -127,8 +128,8 @@ def compare_eigen_vectors(A,vectors,values):
     n = len(A)
     np_A = np.matrix(A)
     for i in range(n):  # A * v = lambda * v
-        A_v = np.asarray(np_A @ (vectors[i]).round(6)).reshape(-1)
-        lambda_v = ( values[i] *vectors[i] ).round(6)
+        A_v = np.asarray(np_A @ (vectors[i])).reshape(-1)
+        lambda_v = ( values[i] *vectors[i])
         if not is_vectors_equals(A_v, lambda_v):
             print("Diff eigen Vectors !")
             print_vector(A_v)
@@ -137,19 +138,11 @@ def compare_eigen_vectors(A,vectors,values):
 def test_eigen(A,T):
     n = len(A)
     np_val,np_vec = np.linalg.eigh(A)
-    #print(np_vec.round(4).transpose())
+    # print(np_vec.round(4).transpose())
 
     # Comapre eigen values
     np_val_s = np.sort(np_val).round(4)
     my_val = np.sort(T[0]).round(4)
-    print(my_val)
-    x = np.matmul(np.array(A), np.array([0.3851,0.5595,0.7339]))
-    y = np.multiply(np.array([9.6235]),np.array([0.3851,0.5595,0.7339])).round(4)
-    # [-0.3146 -0.0548  0.205 ]
-    print("\n Av: ")
-    print(x)
-    print("\n d*v: ")
-    print(y)
     if not is_vectors_equals(np_val_s,my_val):
         print("Diff eigen values !")
         print_vector(np_val_s)
@@ -157,9 +150,10 @@ def test_eigen(A,T):
 
     print("start numpy values:")
     compare_eigen_vectors(A,np_vec.transpose(),np_val) # compre numpy values, sainty check
+    print("Done numpy values ! ")
     print("start our values:")
     compare_eigen_vectors(A, np.array(T[1:]), T[0])  # compre numpy values, sainty check // CHECK SORT !
-
+    print("Done our values ! ")
 
 def main():
     T0 = time.process_time()
@@ -169,14 +163,16 @@ def main():
     observations = load_data_to_dots(filename)
     assert len(observations) > k, "k must be smaller than number of input vectors"
     T,k = spkmeans.get_flag(goal, k, observations)
-    test_eigen(observations,T)
+
+    #test_eigen(observations,T)
 
     if goal=="spk":
-        #print(f"Py: n={len(observations)},  k={k}")
+
         indices = find_initial_clusters( T, k)
         clusters = get_cluster_list( T, indices)
-        spkmeans.fit(T, k, clusters, indices, observations)
-    #print("done !")
+       # print(f"py fit: n={len(T)},  k={k}  d={len(T[0])}")
+        spkmeans.fit(T, clusters, indices)
+    print("done !")
     return
 
 main()
