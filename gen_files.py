@@ -130,6 +130,6 @@ def test_3_basic(is_py):
 #test_3_basic(True)
 #create_output_symatric()
 
-create_output()
+#create_output()
 
-#create_output_symatric()
+create_output_symatric()

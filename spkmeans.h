@@ -100,8 +100,6 @@ double* extract_eigen_values_from_mat(double** mat,int n);
 
 int partition (double* e_values,int* ranks, int low, int high);
 
-void Qsort_eigen_values(double* e_values,int* ranks,int low, int high);
-
 Eigen find_eigen_vectors_and_values(double** L, int n);
 
 int  eigengap_huristic(Eigen eigen);
