@@ -586,7 +586,48 @@ double** create_rotation_mat(double** A,int n){
     P[j][i] = -1*s;
     return P;
 }
+void update_V(int i, int j, int  n, double c, double s,double** V){
+    int r;
+    double v1;
+    double v2;
+    for(r = 0; r < n; r++){
+        v1 = c * V[r][i] - s * V[r][j];
+        v2 = s * V[r][i] + c * V[r][j];
+        V[r][i] = v1;
+        V[r][j] = v2;
+    }
+}
 
+double** find_new_A(int i, int j, int n, double c, double s, double** A, double ** A1){
+    int r;
+    for(r = 0; r < n; r++){
+        if(r!=i&&r!=j){
+         A1[r][i] = c*A[r][i] - s*A[r][j];
+         A1[r][j] = c*A[r][j] + s*A[r][i];
+         A1[i][r] = A1[r][i];
+         A1[j][r] = A1[r][j];
+        }
+
+    }
+    A1[i][i] = c*c*A[i][i] + s*s*A[j][j] - 2*s*c*A[i][j];
+    A1[j][j] = s*s*A[i][i] + c*c*A[j][j] + 2*s*c*A[i][j];
+    A1[i][j] = 0;
+    if(i!=j)
+    A1[j][i] = 0;
+    return A1;
+}
+double** create_rotation_mat_2(double** A, double** A1, double** V, int n){
+    int i,j;
+    double c,t,s, theta;
+    my_assert(A != NULL );
+    find_ind_max_ele_off_diag(A, n,&i,&j);
+    theta = calc_theta(A[j][j],A[i][i],A[i][j]);
+    t = calc_t(theta);
+    c = calc_c(t);
+    s = t * c;
+    update_V(i, j, n, c, s, V);
+    return find_new_A(i, j, n, c, s, A, A1);
+}
 double sum_square_elements_off_diag(double ** A,int n){
     int i,j;
     double sum=0;
@@ -763,6 +804,62 @@ Eigen find_eigen_vectors_and_values(double** L, int n){
         eigen.ranks[i] = i;
      return eigen;
 }
+int check_is_diag(double** A,int n,int k){
+    // TODO can be remove, use sum_A in convarge is  zero
+    int i, j;
+    for(i = 0; i < n; i++){
+        for(j = 0; j < k; k++){
+            if(i!=j){
+                if(A[i][j]!=0){
+                    return 0;
+                }
+            }
+        }
+    }
+    return 1;
+}
+Eigen find_eigen_vectors_and_values_2(double** L, int n){
+    /* Start with A = L_norm */
+    int i;
+    int max_iter,convergence;
+    int is_diag =0;
+    Eigen eigen;
+    double **V,  **V_tmp,**A, **A_f;
+    my_assert(L != NULL);
+    my_assert(n>0);
+    A = create_matrix(n,n);
+    copy_matrix(A,L,n,n);
+    print_verbose("start: find eigen vectors");
+
+    V = create_rotation_mat(A,n);
+    A_f = create_matrix(n,n);
+    copy_matrix(A_f,A,n,n);
+    max_iter = 100;
+    convergence = 0;
+    i = 0;
+
+    while( !convergence &&  i < max_iter && !is_diag){
+        i++;
+        A_f = create_rotation_mat_2(A,A_f,V,n);
+        convergence = check_convergence(A,A_f,n);
+        copy_matrix(A,A_f,n,n);
+        //is_diag = check_is_diag(A,n,n);
+    }
+    print_verbose("\nfound vectors!\n");
+
+    eigen.vectors = V;
+    eigen.mat_size = n;
+    eigen.values = extract_eigen_values_from_mat(A, n);
+    eigen.ranks =  (int*) calloc(n , sizeof (int));
+    my_assert(eigen.ranks != NULL);
+    free_matrix(A,n);
+    for (i = 0; i < n; i++) /* after sorting, in [i]=j, j would the be the rank of the i vector */
+        eigen.ranks[i] = i;
+    printf("\n eigen vectors 2:\n");
+    print_mat(V,n,n);
+    printf("\n ----------");
+     return eigen;
+}
 
 int  eigengap_huristic(Eigen eigen){
     int k,m,i;
@@ -890,9 +987,25 @@ void start_lnorm(double** observations , int n, int d, double*** L)
 void start_jacobi(double** observations , int n, double*** E)
 {
     Eigen eigen = find_eigen_vectors_and_values(observations, n);
+
     inplace_transpose_mat(eigen.vectors,n,n); /*  now each row is a vector */
+    printf("this is old jacobi:\n");
+    print_mat(eigen.vectors,n,n);
+    printf("\n first values:\n");
+    print_vector(eigen.values,n);
     *E  = create_matrix(n+1, n);
     eigen_to_matrix(eigen,*E,n);
+}
+void start_jacobi_2(double** observations , int n/*, double*** E*/)
+{
+    Eigen eigen = find_eigen_vectors_and_values_2(observations, n);
+    inplace_transpose_mat(eigen.vectors,n,n); /*  now each row is a vector */
+    printf("this is second jacobi:\n");
+    print_mat(eigen.vectors,n,n);
+    printf("\nsecond values:\n");
+    print_vector(eigen.values,n);
+   // *E  = create_matrix(n+1, n);
+    //eigen_to_matrix(eigen,*E,n);
 }
 
 
@@ -934,6 +1047,8 @@ spk_results activate_flag(char* goal,double** observations , int k, int n, int d
         start_jacobi(observations,n,&E);
         res.T_size = n + 1;
         res.T = E;
+        start_jacobi_2(observations,n);
+        printf("\n");
         print_mat(res.T,res.T_size,n);
         return res;
     }

@@ -4,7 +4,7 @@ os.system( "python  setup.py build_ext --inplace")
 def test_loop():
     for i in range(10):
         print(f"=================={i}========================")
-        os.system(f"python spkmeans.py 0 jacobi   Test_files/old_J/input_J_{i}.txt > Test_files/old_J/output_J_{i}.txt ")
+        os.system(f"python spkmeans.py 0 jacobi   Test_files/input_J_{i}.txt > Test_files/OutPut/output_J_{i}.txt ")
 
     print("Done!!!")
 
