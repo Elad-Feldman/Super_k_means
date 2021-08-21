@@ -39,7 +39,8 @@ int assert_goal(char* goal);
 /*************** Vectors functions START ******************/
 double dot_mult_vector(double *a, double *b, int n);
 double find_vec_norm(double *a, int n);
-double find_vec_norm_diff(double* a, double* b, int n);
+double find_vec_norm_diff(double* a, double* b,double*c,
+                          int n);
 double* renormlized_vector(double* a, int n);
 double sum_vector(double* a, int n);
 void print_vector(double* a,int n);
@@ -97,10 +98,6 @@ int check_convergence(double** A,double** A1,int n);
 
 /**********   Eigen_values START **********/
 double* extract_eigen_values_from_mat(double** mat,int n);
-
-int partition (double* e_values,int* ranks, int low, int high);
-
-void Qsort_eigen_values(double* e_values,int* ranks,int low, int high);
 
 Eigen find_eigen_vectors_and_values(double** L, int n);
 

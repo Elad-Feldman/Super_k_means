@@ -78,15 +78,13 @@ double find_vec_norm(double* a, int n) {
     return sqrt(sum);
 }
 
-double find_vec_norm_diff(double* a, double* b, int n) {
+double find_vec_norm_diff(double* a, double* b, double* c, int n) {
     /* returns the euclidian distance bitween two vectors a, b */
     int i;
     double norm;
-    double * c =  (double  *) calloc(n,sizeof(double));
     for (i = 0; i < n; i++)
         c[i]= a[i]-b[i];
     norm = find_vec_norm(c,n);
-    free(c);
     return norm;
 }
 
@@ -466,18 +464,18 @@ void create_adj_mat(double** observations, int n, int d,double** W)
     assert(n > 0);
     assert(d > 0);
     assert(observations);
-
+    double * temp_diff =  (double  *) calloc(n,sizeof(double));
 
     for (i = 0; i < n; i++)
     {
         for (j = 0; j < i; j++) /* matrix is symtric, W[j][i] = W[i][j];   */
         {
-            norm = find_vec_norm_diff(observations[i], observations[j], d);
+            norm = find_vec_norm_diff(observations[i], observations[j],temp_diff , d);
             W[i][j] = exp((-norm) / 2);
             W[j][i] = W[i][j];
         }
     }
-
+    free(temp_diff );
 }
 
 void create_diagonal_degree_mat(double** adj_mat,int n,double** D) {
@@ -713,36 +711,6 @@ double* extract_eigen_values_from_mat(double** mat,int n){
     return eigen_values;
 }
 
-int partition (double* e_values,int* ranks, int low, int high)
-{
-    double pivot = e_values[high];
-    int i = (low - 1);
-    int j;
-    for (j = low; j <= high- 1; j++)
-    {
-        if (e_values[j] <= pivot)
-        {
-
-            i++;
-            swap_double(&e_values[i], &e_values[j] );
-            swap_int(&ranks[i], &ranks[j] );
-        }
-    }
-    swap_double(&e_values[i+1], &e_values[high] );
-    swap_int(&ranks[i+1], &ranks[high]);
-    return (i + 1);
-}
-
-void Qsort_eigen_values(double* e_values,int* ranks,int low, int high){
-    /* based on https://hackr.io/blog/quick-sort-in-c */
-    if (low < high) {
-        int pi = partition(e_values, ranks, low, high);
-        Qsort_eigen_values(e_values, ranks, low, pi - 1);
-        Qsort_eigen_values(e_values,ranks, pi + 1, high);
-    }
-
-
-}
 
 Eigen find_eigen_vectors_and_values(double** L, int n){
     /* Start with A = L_norm */
@@ -871,11 +839,11 @@ void test_stable_sort(){
     {
         printf("===PERM ID %d===\nBEFORE:",i+1);
         printf("perm: %d,%d,%d\n",ind_mat[i][0],ind_mat[i][4],ind_mat[i][6]);
+        mergeSort(double_mat[i],ind_mat[i],0,n-1);
       /*   for (j=0;j<n;j++)
              printf("%.0f,",double_mat[i][j]); */
         printf("AFTER:");
-        Qsort_eigen_values(double_mat[i],ind_mat[i],0,n-1);
-        printf("perm: %d,%d,%d\n",ind_mat[i][4],ind_mat[i][5],ind_mat[i][6]);
+         printf("perm: %d,%d,%d\n",ind_mat[i][4],ind_mat[i][5],ind_mat[i][6]);
         for (j=0;j<n;j++) {
              printf("%.0f,",double_mat[i][j]);
          }
@@ -986,8 +954,7 @@ spk_results activate_flag(char* goal,double** observations , int k, int n, int d
     mergeSort(eigen.values,eigen.ranks,0,n-1);
     inplace_transpose_mat(eigen.vectors,n,n); /*  now each row is a vector */
     re_order_matrix_by_indces(eigen.vectors, eigen.ranks, n);
-    printf("\n");
-    if (k==0) //TODO what about k<0 ?
+     if (k==0) //TODO what about k<0 ?
         k = eigengap_huristic(eigen);
 
 
@@ -1076,27 +1043,13 @@ Tuple2 load_observations_from_file(double** observations, char* file_name)
 
 
 /***** TEST QSORT ******/
-void t1()
-{
-    double* a  =(double*) calloc(4,sizeof(double));
-    int* ind  =(int*) calloc(4,sizeof(int));
-    a[0]= 10.0; a[1] = 2.0; a[2] = 30; a[3] = 15;
-    ind[0]= 0; ind[1] = 1; ind[2] = 2; ind[3] = 3;
 
-
-    printf("\n========================================\n");
-    Qsort_eigen_values(a,ind,0,3);
-    print_vector(a,4);
-   printf("\n========================================\n");
-   free(a);
-   free(ind);
-}
 
 int main(int argc, char* argv[])
 {
-    //t1();
-    test_stable_sort();
-    /*
+
+   // test_stable_sort();
+
     int k,n,d;
     char*  goal;
     char*  file_name;
@@ -1127,7 +1080,7 @@ int main(int argc, char* argv[])
       //  printf("found k: %d \n",Res.k);
         T_clusters_list = get_init_clusters_list(Res.T,k);
         T_clusters_indexes = init_clusters_indexes(k);
-        simple_kmean(Res.T, T_clusters_list, T_clusters_indexes,observations,n,k,d);
+        simple_kmean(Res.T, T_clusters_list, T_clusters_indexes,n,k,d);
 
         free_matrix(T_clusters_list,k);
         free(T_clusters_indexes);
@@ -1139,7 +1092,7 @@ int main(int argc, char* argv[])
     free(goal);
     free(file_name);
     free_matrix(observations, n);
-    free_matrix(Res.T,Res.T_size ); */
+    free_matrix(Res.T,Res.T_size );
     printf("\n  C done !");
     return 0;
 }

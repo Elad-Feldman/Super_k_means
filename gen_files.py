@@ -2,18 +2,48 @@ import random
 import os
 import numpy as np
 import time
-N = 20
-D = 9
+N = 40
+D = 5
 MID = 400
 
-ITER = 5
+TEST_NUM = 100
 
 np.random.seed(42)
 random.seed(42)
 os.system("python  setup.py build_ext --inplace")
 
-def is_zero_EPS(num,eps=0.0000005):
-    return num < eps and -num > -eps
+def print_if_files_are_diff(fn1, fn2):
+    msg = f"NOT STABLE! {fn1} and {fn2} differ at "
+    l1 = load_to_list(fn1)
+    l2 = load_to_list(fn2)
+
+    if len(l1) != len(l2):
+        print( msg + " length")
+        return False
+
+    for i, (a, b) in enumerate(zip( l1, l2)):
+        if a != b:
+            print(msg + f" line {i}")
+            return False
+    return True
+
+def check_test_stabilty( filename, flag, k,ITER = 3):
+    Total_time = 0
+    for i in range(TEST_NUM):
+        curr_name = f"_{i}_.txt"
+        cmd = f"python spkmeans.py {k} {flag} {filename}  > {curr_name}"
+        start = time.time()
+        os.system(cmd)
+        end = time.time()
+        Total_time += end - start
+        if i==0:
+            continue
+        prev_name = f"_{i-1}_.txt"
+        print_if_files_are_diff(curr_name,prev_name)
+        os.remove(prev_name)
+    print ("\t{:10.2f} [sec]".format(Total_time / ITER))
+
+
 
 
 def print_vector(dot):
@@ -38,7 +68,7 @@ def create_test_file(filename,is_symatric):
     d = random.randint(4, D)
     d =  n if is_symatric  else d
     A = create_matrix_4digits(n,d)
-    print(f"n= {n}, d={d}",end=" ")
+    print(f"\tn= {n}, d={d}")
 
 
     with open(filename, 'w') as filehandle:
@@ -48,22 +78,17 @@ def create_test_file(filename,is_symatric):
             filehandle.write('%s\n' % row)
 
 def create_output():
-    flags = ["spk"]
-    for i in range(ITER):
+    print(f"N={N}, D={D}")
+    flags = ["wam","ddg","lnorm","spk"]
+    for i in range(TEST_NUM):
         filename = f'Test_files/input_{i}.txt'
+        print(f"input_{i}.txt: ")
         create_test_file(filename, False)
-
+        k = 3
+        print(f"\tFlag\tk \t\tavg time")
         for flag in flags:
-
-            result_name = f'Test_files/output_{i}_{flag}.txt'
-
-            cmd = f"python spkmeans.py 0 {flag} {filename} " # > {result_name}
-            print(flag,end =" ")
-            start = time.time()
-            os.system(cmd)
-            end = time.time()
-            dif = round(end- start,2)
-            print(f"time: {dif }")
+            print(f"\t {flag} \t{k}",end=" ")
+            check_test_stabilty(filename,flag,k)
 
 
 def create_output_symatric():
@@ -93,17 +118,11 @@ def compre_Mat(A,B):
                 return False
     return True
 
-def load_data_to_dots(filename):
-    dots_list = []
-    file = open(filename, 'r')
-    Lines = file.readlines()
+def load_to_list(filename):
+    with open(filename, 'r')as file:
+        lines = file.readlines()
+    return lines
 
-    for line in Lines:
-        if "," not in line:
-            continue
-        dot = [float(word) for word in line.split(sep=",")]
-        dots_list.append(dot)
-    return dots_list
 
 def test_3_basic(is_py):
     for i in range(ITER):
@@ -132,4 +151,5 @@ def test_3_basic(is_py):
 
 create_output()
 
-#create_output_symatric()
+
+
