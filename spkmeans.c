@@ -2,19 +2,12 @@
 
 /* gcc spkmeans.c && gcc  -o spkmeans spkmeans.c && spkmeans  5 spk  dots_10.txt  */
 
-#define Ver 0    \
-/* TODO  to zero before submitting */
+#define Ver 0     /* TODO  to zero before submitting */
+
 #define print_verbose(x) if(Ver && printf(x)){}
 #define my_assert(cond) assert( (cond) && "An Error Has Occured" )
 /****** small function START *******/
-void my_assert2(int  cond)
-{
-    if (!cond){
-        printf("hello");
-        assert(0);
-    }
 
-}
 
 int assert_goal(char* goal)
 {
@@ -38,7 +31,8 @@ int assert_goal(char* goal)
 /****** small function START *******/
 
 double fix_neg_zero(double num){
-    double EPS = 0.00000001;
+    double EPS;
+     EPS = 0.00000001;
     if ((num < EPS) && (-1* num > -1*EPS))
         return 0;
     return num;
@@ -111,7 +105,8 @@ void print_vector_int(int* a,int n){
 }
 void print_vector(double* a,int n){
     int i;
-    int M = 1;
+    int M;
+    M = 1;
     for (i = 0; i < n; i++){
         printf("%.4f",a[i]*M);
         if (i<n-1)
@@ -124,15 +119,16 @@ void print_vector(double* a,int n){
 }
 void swap_int(int *a,int *b)
 {
-    int t = *a;
+    int t;
+     t = *a;
     *a = *b;
     *b = t;
 }
 
 void swap_double(double *a, double *b)
 {
-    double t = *a;
-
+    double t;
+    t = *a;
     *a = *b;
     *b = t;
 
@@ -140,7 +136,8 @@ void swap_double(double *a, double *b)
 
 void swap_double_pointers(double **a, double **b)
 {
-    double* t = *a;
+    double* t;
+    t = *a;
     *a = *b;
     *b = t;
 
@@ -172,7 +169,8 @@ double* renormlized_vector(double* a, int n) {
 double **create_matrix(int rows, int cols)
 {
     int i;
-    double** mat = (double  **)calloc(rows , sizeof(double*));
+    double** mat;
+    mat = (double  **) calloc (rows , sizeof(double*));
     assert(mat);
     for (i = 0; i < rows; i++) {
         mat[i] = (double  *) calloc(cols,sizeof(double));
@@ -204,17 +202,17 @@ void inplace_transpose_mat(double** mat, int rows, int cols){
 
 }
 
-double** transpose_mat(double** mat, int n, int d)
+double** transpose_mat(double** mat, int rows, int cols)
 {
     int i, j;
     double** mat_T;
     assert(mat);
-    assert(n > 0);
-    assert(d > 0);
-    mat_T = create_matrix(d, n);
-    for (i = 0; i < n; i++)
+    assert(rows > 0);
+    assert(cols > 0);
+    mat_T = create_matrix(rows, cols);
+    for (i = 0; i < rows; i++)
     {
-        for (j = 0; j < d; j++)
+        for (j = 0; j < cols; j++)
         {
             mat_T[j][i] = mat[i][j];
         }
@@ -223,7 +221,7 @@ double** transpose_mat(double** mat, int n, int d)
 }
 
 void mult_matrix(double** A, double** B, double ** C ,int n, int is_diag) {
-    /* is_diag: 0= full, 1= A diag , 2= B diag */
+    /* is_diag options : 0 = full, 1= A diag , 2= B diag */
 
     int i, j;
     double **B_T;
@@ -262,7 +260,7 @@ void mult_matrix(double** A, double** B, double ** C ,int n, int is_diag) {
 }
 
 void copy_matrix(double** A, double** B ,int n,int m){
-    /* copy B into A, B override A */
+    /* copy B into A, B override A, assume dim(A)=dim(B) */
     int i, j;
     assert(A);
     assert(B);
@@ -301,7 +299,7 @@ double** create_Id_matrix(int n) {
     assert(n > 0);
      mat = create_matrix(n,n);
     for (i = 0; i < n; i++) {
-        mat[i][i] = 1; /*  for i=\=j ,calloc  allocated memory block to zero */
+        mat[i][i] = 1; /*  for i != j ,calloc  allocated memory block to zero */
 
     }
     return mat;
@@ -376,13 +374,15 @@ void update_cluster_center(double* dot, double * center,int cluster_size,int d,i
 }
 double** get_init_clusters_list(double** T,int k){
     /* get the first k rows of T */
-    double** cluster_list = create_matrix(k,k);
+    double** cluster_list ;
+    cluster_list = create_matrix(k,k);
     copy_matrix(cluster_list,T,k,k);
     return cluster_list;
 }
 int * init_clusters_indexes(int k){
-    int * clusters_indexes = calloc(k,sizeof(int));
     int i;
+    int * clusters_indexes ;
+    clusters_indexes = calloc(k,sizeof(int));
     for(i=0;i<k;i++){
         clusters_indexes[i]=i;
     }
@@ -395,11 +395,11 @@ void simple_kmean (double ** T_mat, double ** T_cluster_list, int* cluster_index
 
     max_iter = 300;
     T_at = (int*) calloc(n, sizeof (int));
-    my_assert2(T_at != NULL);
+    my_assert(T_at != NULL);
     move_T_to = (int*) calloc(n, sizeof (int));
-    my_assert2(move_T_to != NULL);
+    my_assert(move_T_to != NULL);
     T_cluster_size = (int*) calloc(k, sizeof (int));
-    my_assert2(T_cluster_size != NULL);
+    my_assert(T_cluster_size != NULL);
 
     for (i = 0; i < n; i++) { /*  dot are  */
         T_at[i] = -1;
@@ -444,7 +444,7 @@ void simple_kmean (double ** T_mat, double ** T_cluster_list, int* cluster_index
 
 
     print_vector_int(cluster_index_list,k);
-    print_mat(T_cluster_list,k,k);
+   // print_mat(T_cluster_list,k,k);
     free(T_at);
     free(move_T_to);
     free(T_cluster_size);
@@ -458,13 +458,14 @@ void create_adj_mat(double** observations, int n, int d,double** W)
 {
     double norm ;
     int i, j;
+    double* temp_diff ;
     my_assert(n > 0);
     my_assert(d > 0);
     my_assert(observations != NULL);
     assert(n > 0);
     assert(d > 0);
     assert(observations);
-    double * temp_diff =  (double  *) calloc(n,sizeof(double));
+    temp_diff =  (double*) calloc( n, sizeof(double) );
 
     for (i = 0; i < n; i++)
     {
@@ -493,7 +494,7 @@ void D_sqrt(double** D,int n) {
     /* ns stands for negtive squre root this function returns D^(-1/2) */
     int i;
     my_assert(D != NULL);
-    my_assert(n>0);
+    my_assert(n > 0);
     for (i = 0; i < n; i++)
     {
         if (D[i][i] != 0)
@@ -680,9 +681,9 @@ void merge(double* arr,int* arr_i, int l, int m, int r)
     }
 
     /* Merge the temp arrays back into arr[l..r]*/
-    i = 0; // Initial index of first subarray
-    j = 0; // Initial index of second subarray
-    k = l; // Initial index of merged subarray
+    i = 0; /* Initial index of first subarray  */
+    j = 0; /* Initial index of second subarray */
+    k = l; /* Initial index of merged subarray */
     while (i < n1 && j < n2) {
         if (L[i] <= R[j]) {
             arr[k] = L[i];
@@ -725,13 +726,12 @@ void merge(double* arr,int* arr_i, int l, int m, int r)
    sub-array of arr to be sorted */
 void mergeSort(double* arr,int* arr_i, int l, int r)
 {
-    /* based on https://www.geeksforgeeks.org/merge-sort/ */
+    /* based on www.geeksforgeeks.org/merge-sort/ */
     if (l < r) {
-        // Same as (l+r)/2, but avoids overflow for
-        // large l and h
+        /* Same as (l+r)/2, but avoids overflow for large l and h */
         int m = l + (r - l) / 2;
 
-        // Sort first and second halves
+        /* Sort first and second halves */
         mergeSort(arr,arr_i, l, m);
         mergeSort(arr,arr_i, m + 1, r);
 
@@ -786,7 +786,7 @@ Eigen find_eigen_vectors_and_values(double** L, int n){
 
         convergence = check_convergence(A,A_f,n);
         copy_matrix(A,A_f,n,n);
-        mult_matrix(V,P,V_tmp,n,0);//TODO CHECK
+        mult_matrix(V,P,V_tmp,n,0); /* TODO CHECK, CHECK WHAT ?!!? */
         copy_matrix(V,V_tmp,n,n);
         free_matrix(P,n);
         free_matrix(P_T,n);
@@ -805,7 +805,7 @@ Eigen find_eigen_vectors_and_values(double** L, int n){
      return eigen;
 }
 int check_is_diag(double** A,int n,int k){
-    // TODO can be remove, use sum_A in convarge is  zero
+    /* TODO can be remove, use sum_A in convarge is  zero */
     int i, j;
     for(i = 0; i < n; i++){
         for(j = 0; j < k; k++){
@@ -822,9 +822,9 @@ Eigen find_eigen_vectors_and_values_2(double** L, int n){
     /* Start with A = L_norm */
     int i;
     int max_iter,convergence;
-    int is_diag =0;
+    int is_diag;
     Eigen eigen;
-    double **V,  **V_tmp,**A, **A_f;
+    double **V , **A, **A_f;
     my_assert(L != NULL);
     my_assert(n>0);
     A = create_matrix(n,n);
@@ -834,6 +834,7 @@ Eigen find_eigen_vectors_and_values_2(double** L, int n){
     V = create_rotation_mat(A,n);
     A_f = create_matrix(n,n);
     copy_matrix(A_f,A,n,n);
+    is_diag = 0;
     max_iter = 100;
     convergence = 0;
     i = 0;
@@ -843,7 +844,7 @@ Eigen find_eigen_vectors_and_values_2(double** L, int n){
         A_f = create_rotation_mat_2(A,A_f,V,n);
         convergence = check_convergence(A,A_f,n);
         copy_matrix(A,A_f,n,n);
-        //is_diag = check_is_diag(A,n,n);
+        /* is_diag = check_is_diag(A,n,n); */
     }
     print_verbose("\nfound vectors!\n");
 
@@ -958,6 +959,7 @@ void test_stable_sort(){
 
 void start_wam(double** observations , int n, int d, double*** W)
 {
+
     *W = create_matrix(n, n);
     create_adj_mat(observations,n,d,*W);
 
@@ -1004,8 +1006,8 @@ void start_jacobi_2(double** observations , int n/*, double*** E*/)
     print_mat(eigen.vectors,n,n);
     printf("\nsecond values:\n");
     print_vector(eigen.values,n);
-   // *E  = create_matrix(n+1, n);
-    //eigen_to_matrix(eigen,*E,n);
+   /* *E  = create_matrix(n+1, n);
+    eigen_to_matrix(eigen,*E,n); */
 }
 
 
@@ -1021,11 +1023,11 @@ spk_results activate_flag(char* goal,double** observations , int k, int n, int d
     res.k = n;
 
 
-
     if (is_goal("wam")){
         start_wam(observations,n,d,&W);
         res.T = W;
-        print_mat(res.T,res.T_size,n);
+        print_mat(res.T,res.T_size,n) ;
+
         return res;
     }
     if (is_goal("ddg"))
@@ -1067,9 +1069,9 @@ spk_results activate_flag(char* goal,double** observations , int k, int n, int d
     eigen = find_eigen_vectors_and_values(L, n);
 
     mergeSort(eigen.values,eigen.ranks,0,n-1);
-    inplace_transpose_mat(eigen.vectors,n,n); /*  now each row is a vector */
+    inplace_transpose_mat(eigen.vectors,n,n); /*  now each row is an eigen  vector, easily reordered */
     re_order_matrix_by_indces(eigen.vectors, eigen.ranks, n);
-     if (k==0) //TODO what about k<0 ?
+     if (k==0) /* TODO what about k<0 ? */
         k = eigengap_huristic(eigen);
 
 
@@ -1077,7 +1079,7 @@ spk_results activate_flag(char* goal,double** observations , int k, int n, int d
     for (i=0; i<n; i++)
         {
             for (j=0; j<k; j++)
-                U[i][j] = eigen.vectors[j][i]; /* each vector is a column */
+                U[i][j] = eigen.vectors[j][i]; /* each  eigen vector is a column in U */
         }
     T = create_matrix(n,k);
     renorm_matrix_rows(U, n,k, T);
@@ -1115,13 +1117,14 @@ int string_to_doubles(char *row,double* arr)
         arr[i] = atof(ptr);
         ptr = 	strtok(NULL, ",");
         i++;
-        //printf("we got %d features",i);
+        /* printf("we got %d features",i); */
 
     }
     return i;
 
 
 }
+
 Tuple2 load_observations_from_file(double** observations, char* file_name)
 {
     int d,n,i;
@@ -1130,7 +1133,7 @@ Tuple2 load_observations_from_file(double** observations, char* file_name)
     Tuple2 sizes;
 
     fp = fopen(file_name,"r");
-    row = (char* )calloc(1000, sizeof(char));
+    row = (char* ) calloc(1000, sizeof(char));
     my_assert(row != NULL);
     i =0;
     while(fscanf(fp,"%s",row)==1)
@@ -1140,7 +1143,7 @@ Tuple2 load_observations_from_file(double** observations, char* file_name)
     }
     n = i;
     /* change the size of observations to match the file */
-    observations = (double **) realloc(observations,n* sizeof(double *));
+    observations = (double **) realloc(observations,n * sizeof(double *));
     my_assert(observations != NULL);
     for (i = 0; i < n; i++)
     {
@@ -1163,9 +1166,10 @@ Tuple2 load_observations_from_file(double** observations, char* file_name)
 int main(int argc, char* argv[])
 {
 
-   // test_stable_sort();
+
 
     int k,n,d;
+
     char*  goal;
     char*  file_name;
     double** T_clusters_list;
@@ -1176,23 +1180,23 @@ int main(int argc, char* argv[])
     n = 1000;  d = 10;
     observations = create_matrix(n,d);
     my_assert(argc==4);
-    // TODO my_assert k is an integer
-    k = atoi(argv[1]);
+    my_assert( atof(argv[1]) == atoi(argv[1]) );
+    k =  atoi(argv[1]);
     load_string(&goal,argv[2]);
     load_string(&file_name,argv[3]);
 
 
-    my_assert(k>=0); // TODO change massage
+    my_assert( k>=0 ); /* TODO change massage */
 
     assert_goal(goal);
-   // printf("=========\nk:%d\ngoal %s\nfile_name: %s\n==========\n",k,goal,file_name);
+   /* printf("=========\nk:%d\ngoal %s\nfile_name: %s\n==========\n",k,goal,file_name); */
     sizes = load_observations_from_file(observations, file_name);
     n=sizes.i;    d=sizes.j;
 
     Res = activate_flag( goal, observations , k,  n, d);
     if(is_goal("spk")){
         k = Res.k;
-      //  printf("found k: %d \n",Res.k);
+      /*  printf("found k: %d \n",Res.k); */
         T_clusters_list = get_init_clusters_list(Res.T,k);
         T_clusters_indexes = init_clusters_indexes(k);
         simple_kmean(Res.T, T_clusters_list, T_clusters_indexes,n,k,d);
@@ -1203,7 +1207,7 @@ int main(int argc, char* argv[])
 
 
 
-    //Free all
+    /* Free all */
     free(goal);
     free(file_name);
     free_matrix(observations, n);

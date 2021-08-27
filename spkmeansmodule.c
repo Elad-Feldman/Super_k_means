@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
+#include <time.h>
 #include "spkmeans.h"
 
 
@@ -136,6 +137,9 @@ static double** get_c_matrix_from_py_lst(PyObject * _list,  Py_ssize_t n, Py_ssi
  * Print list of lists of ints without changing it
  */
 static PyObject* get_flag(PyObject *self, PyObject *args){
+   clock_t start, end ;
+   double cpu_time_used;
+
    char* goal;
     int k;
     PyObject* _observations, * _T;
@@ -146,6 +150,7 @@ static PyObject* get_flag(PyObject *self, PyObject *args){
     spk_results res;
     T_K = PyList_New( (Py_ssize_t) 2 );
     _T =  Py_None;
+    start = clock();
     if(!PyArg_ParseTuple(args, "siO",&goal,&k ,&_observations)) {//getting data from python
         printf("An Error Has Occured");
         return NULL;
@@ -160,12 +165,14 @@ static PyObject* get_flag(PyObject *self, PyObject *args){
 
      res  = activate_flag(goal,observations,k, n, d);
 
-    // printf("C fit: n=%d,  k=%d\n",res.T_size, res.k); /* TODO DELETE */
      _T = get_py_lst_from_c_matrix(res.T ,res.T_size, res.k);
      PyList_SetItem(T_K,0, _T );
      PyList_SetItem(T_K,1,Py_BuildValue("i",res.k));
 
      free_matrix(observations, n);
+     end = clock();
+     cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
+     printf("%s with %d dots, took %.2f [sec].\n", goal,n ,cpu_time_used );
      return T_K;
     }
 

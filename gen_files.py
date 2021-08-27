@@ -2,11 +2,11 @@ import random
 import os
 import numpy as np
 import time
-N = 40
+N = 900
 D = 5
 MID = 400
 
-TEST_NUM = 100
+TEST_NUM = 3
 
 np.random.seed(42)
 random.seed(42)
@@ -27,7 +27,7 @@ def print_if_files_are_diff(fn1, fn2):
             return False
     return True
 
-def check_test_stabilty( filename, flag, k,ITER = 3):
+def check_test_stabilty( filename, flag, k,ITER = 1):
     Total_time = 0
     for i in range(TEST_NUM):
         curr_name = f"_{i}_.txt"
