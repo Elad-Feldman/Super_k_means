@@ -159,12 +159,11 @@ def main():
     T0 = time.process_time()
     np.random.seed(0)
     k, goal, filename = parse2()
-
     observations = load_data_to_dots(filename)
     assert len(observations) > k, "k must be smaller than number of input vectors"
     T,k = spkmeans.get_flag(goal, k, observations)
 
-    #test_eigen(observations,T)
+    test_eigen(observations,T)
 
     if goal=="spk":
 
