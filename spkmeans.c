@@ -3,12 +3,11 @@
 /* gcc spkmeans.c && gcc  -o spkmeans spkmeans.c && spkmeans  5 spk  dots_10.txt  */
 
 #define Ver 0     /* TODO  to zero before submitting */
-
 #define print_verbose(x) if(Ver && printf(x)){}
 #define my_assert(cond) assert( (cond) && "An Error Has Occured" )
 /****** small function START *******/
 
-}
+
 
 int assert_goal(char* goal)
 {
@@ -106,10 +105,8 @@ void print_vector_int(int* a,int n){
 }
 void print_vector(double* a,int n){
     int i;
-    int M;
-    M = 1;
     for (i = 0; i < n; i++){
-        printf("%.4f",a[i]*M);
+        printf("%.3f",a[i]); /* TOOD fix negative zero */
         if (i<n-1)
             printf(",");
 
@@ -524,9 +521,8 @@ void create_L_norm(double** D, double** W, int n, double** L ) {
 
 /************    Jacobi  START    ********/
 double abs_d(double x){
-    if(x<0){
-        return -x;
-    }
+    if(x<0)
+        return -1.0 * x;
     return x;
 }
 
@@ -537,11 +533,10 @@ void find_ind_max_ele_off_diag(double** A, int n,int* I, int* J)
     double max_abs;
     my_assert(A != NULL);
     my_assert(n > 0);
-    max_abs = -1;
+    max_abs = -1.0;
 
     for (i = 0; i < n; i++)
     {
-
         for (j = 0; j < n; j++)
         {
             tmp = abs_d(A[i][j]);
@@ -555,39 +550,48 @@ void find_ind_max_ele_off_diag(double** A, int n,int* I, int* J)
     }
 }
 
-int sign(double x) {
-    if (x<0)
-    {
-        return -1;
-    }
-    return 1;
+double sign(double x) {
+    if (x < 0)
+        return -1.0;
+
+    return 1.0;
 }
 double calc_theta(double A_jj ,double A_ii,double A_ij) {
     if (A_ij == 0) {
         return 0;
     }
-    return (A_jj - A_ii) / (2 * A_ij);
+    return (A_jj - A_ii) / (2.0 * A_ij);
 }
-double calc_t(double theta) {    return sign(theta)/(abs_d(theta)+sqrt((theta*theta)+1));}
-double calc_c(double t) { return 1 / sqrt((t * t) + 1); }
-double** create_rotation_mat(double** A,int n){
+double calc_t(double theta)
+{
+    double  mone,mechne;
+    mone = sign(theta) ;
+    mechne = abs_d( theta ) + sqrt( ( theta * theta ) + 1.0 );
+    return  mone / mechne ;
+}
+double calc_c(double t) { return 1.0 / sqrt((t * t) + 1.0); }
+/* double** create_rotation_mat(double** A,int n){
+    my_assert(A != NULL );
+
     int i,j;
     double c,t,s, theta;
     double** P;
-    my_assert(A != NULL );
+
     P = create_Id_matrix(n);
-    find_ind_max_ele_off_diag(A, n,&i,&j);
-    theta = calc_theta(A[j][j],A[i][i],A[i][j]);
+    find_ind_max_ele_off_diag(A, n, &i, &j );
+    theta = calc_theta( A[j][j], A[i][i], A[i][j] );
     t = calc_t(theta);
     c = calc_c(t);
     s = t * c;
-    /* printf("c: %f s: %f t: %f theta: %f \n",c,s,t,theta); */
+    /
     P[i][i] = c;
     P[j][j] = c;
     P[i][j] = s;
-    P[j][i] = -1*s;
+    P[j][i] = -1 * s;
     return P;
 }
+*/
+
 void update_V(int i, int j, int  n, double c, double s,double** V){
     int r;
     double v1;
@@ -603,7 +607,7 @@ void update_V(int i, int j, int  n, double c, double s,double** V){
 double** find_new_A(int i, int j, int n, double c, double s, double** A, double ** A1){
     int r;
     for(r = 0; r < n; r++){
-        if(r!=i&&r!=j){
+        if( r!=i && r!=j ){
          A1[r][i] = c*A[r][i] - s*A[r][j];
          A1[r][j] = c*A[r][j] + s*A[r][i];
          A1[i][r] = A1[r][i];
@@ -611,48 +615,172 @@ double** find_new_A(int i, int j, int n, double c, double s, double** A, double 
         }
 
     }
-    A1[i][i] = c*c*A[i][i] + s*s*A[j][j] - 2*s*c*A[i][j];
-    A1[j][j] = s*s*A[i][i] + c*c*A[j][j] + 2*s*c*A[i][j];
+    A1[i][i] = c*c*A[i][i] + s*s*A[j][j] - 2.0*s*c*A[i][j];
+    A1[j][j] = s*s*A[i][i] + c*c*A[j][j] + 2.0*s*c*A[i][j];
     A1[i][j] = 0;
-    if(i!=j)
     A1[j][i] = 0;
     return A1;
+
 }
-double** create_rotation_mat_2(double** A, double** A1, double** V, int n){
-    int i,j;
-    double c,t,s, theta;
-    my_assert(A != NULL );
-    find_ind_max_ele_off_diag(A, n,&i,&j);
-    theta = calc_theta(A[j][j],A[i][i],A[i][j]);
-    t = calc_t(theta);
-    c = calc_c(t);
-    s = t * c;
-    update_V(i, j, n, c, s, V);
-    return find_new_A(i, j, n, c, s, A, A1);
-}
+
 double sum_square_elements_off_diag(double ** A,int n){
     int i,j;
-    double sum=0;
-    for (i = 0; i <n ;i++) {
-        for (j = 0; j <n ;j++) {
-            if(i!=j){
-                sum+=A[i][j]*A[i][j];
+    double sum;
+    sum = 0;
+    for (i = 0; i < n ;i++)
+    {
+        for (j = 0; j < n ;j++)
+        {
+            if(i!=j)
+            {
+                sum += A[i][j] * A[i][j];
             }
 
         }
     }
     return sum;
 }
-int check_convergence(double** A,double** A1,int n){
-    double EPSILON =  1.0*exp(-15);
+int check_convergence(double** A,double** A1,int n)
+    {
+    double eps =   1.0 * exp(-15);
     double sum_A = sum_square_elements_off_diag( A, n );
     double sum_A1 = sum_square_elements_off_diag( A1, n );
-    double diff =  sum_A-sum_A1;
-    if( diff <= EPSILON || sum_A1 == 0 )
+    double diff =  sum_A - sum_A1;
+  /*  printf("CONV:  %.3f,%.3f \n",diff,sum_A1); */
+    if( diff <= eps  || sum_A1 == 0)
         return 1;
     else
         return 0;
 }
+
+Eigen find_eigen_vectors_and_values(double** L, int n){
+    /* Start with A = L_norm */
+    my_assert(L != NULL);
+    my_assert(n>0);
+
+    int iter_count, i,j;
+    int max_iter,convergence;
+    double **V,  **V_tmp,**A, **A_f;
+    Eigen eigen;
+    double c,t,s, theta;
+
+    A = create_matrix(n,n);
+    A_f = create_matrix(n,n);
+    V = create_Id_matrix(n);
+    copy_matrix(A,L,n,n);
+    copy_matrix(A_f,A,n,n);
+
+    max_iter = 100;
+    convergence = 0;
+    iter_count = 0;
+
+    while( !convergence &&  iter_count < max_iter)
+    {
+        iter_count++;
+
+        find_ind_max_ele_off_diag(A, n, &i, &j);
+        theta = calc_theta( A[j][j], A[i][i], A[i][j] );
+        t = calc_t(theta);
+        c = calc_c(t);
+        s = t * c;
+
+
+        update_V(i, j, n, c, s, V); /* V = P(i) * P_(i+1) */
+        A_f = find_new_A(i, j, n, c, s, A, A_f);
+        convergence = check_convergence(A,A_f,n);
+
+        copy_matrix(A,A_f,n,n);
+    }
+    eigen.vectors = V;
+    eigen.mat_size = n;
+    eigen.values = extract_eigen_values_from_mat(A, n);
+
+    eigen.ranks =  (int*) calloc(n , sizeof (int));
+    my_assert(eigen.ranks != NULL);
+
+
+    for (i = 0; i < n; i++)
+        eigen.ranks[i] = i;
+
+    free_matrix(A,n);
+    free_matrix(A_f,n);
+    return eigen;
+}
+
+double** create_rotation_mat_OLD(double** A,int n) {
+
+    int i, j;
+    double c, t, s, theta;
+    double **P;
+    my_assert(A != NULL);
+    P = create_Id_matrix(n);
+    find_ind_max_ele_off_diag(A, n, &i, &j);
+    theta = calc_theta(A[j][j], A[i][i], A[i][j]);
+    t = calc_t(theta);
+    c = calc_c(t);
+    s = t * c;
+    /* printf("c: %f s: %f t: %f theta: %f \n",c,s,t,theta); */
+    P[i][i] = c;
+    P[j][j] = c;
+    P[i][j] = s;
+    P[j][i] = -1 * s;
+    return P;
+}
+
+Eigen find_eigen_vectors_and_values_OLD(double** L, int n){
+    /* Start with A = L_norm */
+    printf("old ! \n");
+    int i;
+    int max_iter,convergence;
+    Eigen eigen;
+    double **V,  **V_tmp,  **P,  **P_T,  **A, **A_tmp, **A_f;
+    my_assert(L != NULL);
+    my_assert(n>0);
+    A = create_matrix(n,n);
+    copy_matrix(A,L,n,n);
+    print_verbose("start: find eigen vectors");
+
+    V = create_Id_matrix(n);
+    V_tmp =  create_matrix(n,n);
+    A_tmp = create_matrix(n,n);
+    A_f = create_matrix(n,n);
+
+    max_iter = 100;
+    convergence = 0;
+    i = 0;
+
+    while( !convergence &&  i<max_iter){
+        convergence = check_convergence(A,A_f,n);
+        i++;
+
+        P = create_rotation_mat_OLD(A,n);
+        P_T = transpose_mat(P,n,n);
+
+
+        mult_matrix(P_T,A,A_tmp,n,0); /* A_tmp = pT*A  */
+        mult_matrix(A_tmp,P,A_f,n,0); /* A_f = pT*A*p  */
+
+
+        copy_matrix(A,A_f,n,n);
+        mult_matrix(V,P,V_tmp,n,0);//TODO CHECK
+        copy_matrix(V,V_tmp,n,n);
+        free_matrix(P,n);
+        free_matrix(P_T,n);
+    }
+    free_matrix(A_tmp,n);
+    print_verbose("\nfound vectors!\n");
+
+    eigen.vectors = V;
+    eigen.mat_size = n;
+    eigen.values = extract_eigen_values_from_mat(A, n);
+    eigen.ranks =  (int*) calloc(n , sizeof (int));
+    my_assert(eigen.ranks != NULL);
+    free_matrix(A,n);
+    for (i = 0; i < n; i++) /* after sorting, in [i]=j, j would the be the rank of the i vector */
+        eigen.ranks[i] = i;
+    return eigen;
+}
+
 /************    Jacobi  END    ********/
 
 
@@ -748,7 +876,7 @@ double* extract_eigen_values_from_mat(double** mat,int n){
     double * eigen_values = calloc(n,sizeof(double));
     my_assert(eigen_values != NULL );
     for(i=0;i<n;i++){
-        eigen_values[i]=mat[i][i];
+        eigen_values[i]= mat [i][i];
     }
     return eigen_values;
 }
@@ -767,44 +895,7 @@ int check_is_diag(double** A,int n,int k){
     }
     return 1;
 }
-Eigen find_eigen_vectors_and_values(double** L, int n){
-    /* Start with A = L_norm */
-    int i;
-    int max_iter,convergence;
-    int is_diag =0;
-    Eigen eigen;
-    double **V,  **V_tmp,**A, **A_f;
-    my_assert(L != NULL);
-    my_assert(n>0);
-    A = create_matrix(n,n);
-    copy_matrix(A,L,n,n);
-    print_verbose("start: find eigen vectors");
-    V = create_Id_matrix(n);
-    A_f = create_matrix(n,n);
-    copy_matrix(A_f,A,n,n);
-    max_iter = 100;
-    convergence = 0;
-    i = 0;
 
-    while( !convergence &&  i < max_iter && !is_diag){
-        i++;
-        A_f = create_rotation_mat(A,A_f,V,n);
-        convergence = check_convergence(A,A_f,n);
-        copy_matrix(A,A_f,n,n);
-          }
-    eigen.vectors = V;
-    eigen.mat_size = n;
-    eigen.values = extract_eigen_values_from_mat(A, n);
-    eigen.ranks =  (int*) calloc(n , sizeof (int));
-    my_assert(eigen.ranks != NULL);
-    free_matrix(A,n);
-    for (i = 0; i < n; i++) /* after sorting, in [i]=j, j would the be the rank of the i vector */
-        eigen.ranks[i] = i;
-    printf("\n eigen vectors 2:\n");
-    print_mat(V,n,n);
-    printf("\n ----------");
-     return eigen;
-}
 
 int  eigengap_huristic(Eigen eigen){
     int k,m,i;
@@ -933,12 +1024,7 @@ void start_lnorm(double** observations , int n, int d, double*** L)
 void start_jacobi(double** observations , int n, double*** E)
 {
     Eigen eigen = find_eigen_vectors_and_values(observations, n);
-
-    inplace_transpose_mat(eigen.vectors,n,n); /*  now each row is a vector */
-    printf("this is old jacobi:\n");
-    print_mat(eigen.vectors,n,n);
-    printf("\n first values:\n");
-    print_vector(eigen.values,n);
+   // inplace_transpose_mat(eigen.vectors,n,n); /*  now each row is a vector */
     *E  = create_matrix(n+1, n);
     eigen_to_matrix(eigen,*E,n);
 }
@@ -983,7 +1069,7 @@ spk_results activate_flag(char* goal,double** observations , int k, int n, int d
         start_jacobi(observations,n,&E);
         res.T_size = n + 1;
         res.T = E;
-        //print_mat(res.T,res.T_size,n);
+        print_mat(res.T,res.T_size,n);
         return res;
     }
     /* else goal = full  spk  */
@@ -1109,10 +1195,10 @@ int main(int argc, char* argv[])
     double** observations;
     Tuple2 sizes;
     spk_results Res;
-    n = 1000;  d = 10;
+    n = 50 ;  d = 10;
     observations = create_matrix(n,d);
     my_assert(argc==4);
-    my_assert( atof(argv[1]) == atoi(argv[1]) );
+    my_assert( atof(argv[1]) == atoi(argv[1]) ); /* is k an integer */
     k =  atoi(argv[1]);
     load_string(&goal,argv[2]);
     load_string(&file_name,argv[3]);
@@ -1121,10 +1207,10 @@ int main(int argc, char* argv[])
     my_assert( k>=0 ); /* TODO change massage */
 
     assert_goal(goal);
-   /* printf("=========\nk:%d\ngoal %s\nfile_name: %s\n==========\n",k,goal,file_name); */
     sizes = load_observations_from_file(observations, file_name);
     n=sizes.i;    d=sizes.j;
 
+    printf("=========\nk:%d\ngoal %s\nfile_name: %s\n==========\n",k,goal,file_name);
     Res = activate_flag( goal, observations , k,  n, d);
     if(is_goal("spk")){
         k = Res.k;

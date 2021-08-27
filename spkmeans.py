@@ -87,6 +87,7 @@ def check_param(k, goal,filename):
     assert type(filename) is str, "file path must be a string"
 
 def parse2():
+    print(sys.argv)
     if len(sys.argv)== 4:
         k = int( sys.argv[1])
         goal = str(sys.argv[2])
@@ -174,4 +175,4 @@ def main():
     print("done !")
     return
 
-main()
+#main()

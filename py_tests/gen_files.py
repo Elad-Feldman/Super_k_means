@@ -2,7 +2,7 @@ import random
 import os
 import numpy as np
 import time
-N = 900
+N = 50
 D = 5
 MID = 400
 
@@ -149,7 +149,7 @@ def test_3_basic(is_py):
 #test_3_basic(True)
 #create_output_symatric()
 
-create_output()
-
+#create_output()
+create_output_symatric()
 
 

@@ -85,11 +85,11 @@ void create_L_norm(double** D, double** W, int n, double** L );
 /************    Jacobi  START    ********/
 double abs_d(double x);
 void find_ind_max_ele_off_diag(double** A, int n,int* I, int* J);
-int sign(double x) ;
+double sign(double x) ;
 double calc_theta(double A_jj ,double A_ii,double A_ij);
 double calc_t(double theta) ;
 double calc_c(double t) ;
-double** create_rotation_mat(double** A,int n);
+// double** create_rotation_mat(double** A,int n);
 double sum_square_elements_off_diag(double ** A,int n);
 int check_convergence(double** A,double** A1,int n);
 /************    Jacobi  END    ********/
