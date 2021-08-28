@@ -39,7 +39,7 @@ int assert_goal(char* goal);
 /*************** Vectors functions START ******************/
 double dot_mult_vector(double *a, double *b, int n);
 double find_vec_norm(double *a, int n);
-double find_vec_norm_diff(double* a, double* b,double*c, int n);
+double find_vec_norm_diff(double* a, double* b, int n);
 double* renormlized_vector(double* a, int n);
 double sum_vector(double* a, int n);
 void print_vector(double* a,int n);

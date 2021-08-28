@@ -7,8 +7,6 @@
 #define my_assert(cond) assert( (cond) && "An Error Has Occured" )
 /****** small function START *******/
 
-
-
 int assert_goal(char* goal)
 {
     if (strcmp(goal,"spk")==0)
@@ -31,11 +29,13 @@ int assert_goal(char* goal)
 /****** small function START *******/
 
 double fix_neg_zero(double num){
-    double EPS;
-     EPS = 0.00000001;
-    if ((num < EPS) && (-1* num > -1*EPS))
-        return 0;
-    return num;
+
+    double eps,res;
+    res = num;
+     eps = -0.00005;
+     if (eps < num && num < 0)
+        res = num; /*TODO  OPEN res= 0 */
+    return res;
 }
 
 
@@ -68,17 +68,22 @@ double find_vec_norm(double* a, int n) {
         sum += tmp;
     }
 
-//  assert(sum>0);
+    assert(sum>0);
     return sqrt(sum);
 }
 
-double find_vec_norm_diff(double* a, double* b, double* c, int n) {
+double find_vec_norm_diff(double* a, double* b, int n) {
     /* returns the euclidian distance bitween two vectors a, b */
     int i;
     double norm;
-    for (i = 0; i < n; i++)
+    double* c ;
+    c =  (double*) calloc(n, sizeof(double) );
+    my_assert(c  != NULL);
+    for (i = 0; i < n; i++) {
         c[i]= a[i]-b[i];
+    }
     norm = find_vec_norm(c,n);
+    free(c);
     return norm;
 }
 
@@ -105,8 +110,9 @@ void print_vector_int(int* a,int n){
 }
 void print_vector(double* a,int n){
     int i;
+
     for (i = 0; i < n; i++){
-        printf("%.4f",a[i]); /* TOOD fix negative zero */
+        printf("%.4f", a[i] ); /* TOOD fix negative zero */
         if (i<n-1)
             printf(",");
 
@@ -442,25 +448,26 @@ void create_adj_mat(double** observations, int n, int d,double** W)
 {
     double norm ;
     int i, j;
-    double* temp_diff ;
+
     my_assert(n > 0);
     my_assert(d > 0);
     my_assert(observations != NULL);
     assert(n > 0);
     assert(d > 0);
     assert(observations);
-    temp_diff =  (double*) calloc( n, sizeof(double) );
+
 
     for (i = 0; i < n; i++)
     {
         for (j = 0; j < i; j++) /* matrix is symtric, W[j][i] = W[i][j];   */
         {
-            norm = find_vec_norm_diff(observations[i], observations[j],temp_diff , d);
-            W[i][j] = exp((-norm) / 2);
+            norm = find_vec_norm_diff(observations[i], observations[j] , d);
+            W[i][j] = exp( (-norm) / 2);
             W[j][i] = W[i][j];
         }
     }
-    free(temp_diff );
+
+
 }
 
 void create_diagonal_degree_mat(double** adj_mat,int n,double** D) {
@@ -922,7 +929,7 @@ void start_lnorm(double** observations , int n, int d, double*** L)
 void start_jacobi(double** observations , int n, double*** E)
 {
     Eigen eigen = find_eigen_vectors_and_values(observations, n);
-    inplace_transpose_mat(eigen.vectors,n,n); /*  now each row is a vector */
+   inplace_transpose_mat(eigen.vectors,n,n); /*  now each row is a vector */
     *E  = create_matrix(n+1, n);
     eigen_to_matrix(eigen,*E,n);
 }
@@ -971,7 +978,6 @@ spk_results activate_flag(char* goal,double** observations , int k, int n, int d
         return res;
     }
     /* else goal = full  spk  */
-
 
     W = create_matrix(n, n);
     create_adj_mat(observations,n,d,W);
@@ -1099,6 +1105,7 @@ int main(int argc, char* argv[])
     load_string(&file_name,argv[3]);
 
 
+
     my_assert( k>=0 ); /* TODO change massage */
 
     assert_goal(goal);
@@ -1107,6 +1114,7 @@ int main(int argc, char* argv[])
 
     /* printf("=========\nk:%d\ngoal %s\nfile_name: %s\n==========\n",k,goal,file_name); */
     Res = activate_flag( goal, observations , k,  n, d);
+
     if(is_goal("spk")){
         k = Res.k;
       /*  printf("found k: %d \n",Res.k); */
