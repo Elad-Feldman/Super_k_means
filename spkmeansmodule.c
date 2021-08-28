@@ -1,8 +1,8 @@
 //
 // Created by TomBarzilay on 22/07/2021.
 //
-#define PY_SSIZE_T_CLEAN
 #include <Python.h>
+#define PY_SSIZE_T_CLEAN
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -10,7 +10,7 @@
 #include <time.h>
 #include "spkmeans.h"
 
-
+PyMODINIT_FUNC PyInit_spkmeans(void);
 
 /* ************  API FUNCTION CONVERT PYTHON OBJECT INTO C ARRAY AND BACK ************ */
 static void check_for_py_list(PyObject * _list)
@@ -18,14 +18,7 @@ static void check_for_py_list(PyObject * _list)
     assert (!PyList_Check(_list) && "this is not a list ");
 }
 
-static void free_observations(double ** list, Py_ssize_t n, Py_ssize_t d )
-{
-    Py_ssize_t i;
-    for (i = 0; i < n; i++)
-        free(list[i]);
 
-    free(list);
-}
 
 static  PyObject* get_py_lst_from_c_array(double* c_dot, Py_ssize_t  d)
 {
@@ -137,8 +130,8 @@ static double** get_c_matrix_from_py_lst(PyObject * _list,  Py_ssize_t n, Py_ssi
  * Print list of lists of ints without changing it
  */
 static PyObject* get_flag(PyObject *self, PyObject *args){
-   clock_t start, end ;
-   double cpu_time_used;
+ /*  clock_t start, end ;
+   double cpu_time_used; */
 
    char* goal;
     int k;
@@ -150,7 +143,7 @@ static PyObject* get_flag(PyObject *self, PyObject *args){
     spk_results res;
     T_K = PyList_New( (Py_ssize_t) 2 );
     _T =  Py_None;
-    start = clock();
+   /* start = clock(); */
     if(!PyArg_ParseTuple(args, "siO",&goal,&k ,&_observations)) {//getting data from python
         printf("An Error Has Occured");
         return NULL;
@@ -170,9 +163,9 @@ static PyObject* get_flag(PyObject *self, PyObject *args){
      PyList_SetItem(T_K,1,Py_BuildValue("i",res.k));
 
      free_matrix(observations, n);
-     end = clock();
+     /* end = clock();
      cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
-     printf("%s with %d dots, took %.2f [sec].\n", goal,n ,cpu_time_used );
+     printf("%s with %d dots, took %.2f [sec].\n", goal,n ,cpu_time_used ); */
      return T_K;
     }
 
@@ -208,13 +201,14 @@ static PyObject* fit(PyObject *self, PyObject *args)
     k_c = (int) k;
 
     simple_kmean(T_c, cluster_list_c , cluster_index_list_c, n_c, k_c, k_c);
-    _cluster_list =  get_py_lst_from_c_matrix(cluster_index_list_c ,k,k);
+     /* _cluster_list =  get_py_lst_from_c_matrix(cluster_index_list_c ,k,k); */
 
     /* free memory */
+
     free_matrix(cluster_list_c,k_c);
     free_matrix(T_c,n_c);
     free(cluster_index_list_c );
-    return _cluster_list;
+    return Py_None;
 
 }
 
@@ -222,25 +216,24 @@ static PyObject* fit(PyObject *self, PyObject *args)
  * A macro to help us with defining the methods
  * Compare with: {"f1", (PyCFunction)f1, METH_NOARGS, PyDoc_STR("No input parameters")}
 */
-#define FUNC(_flag, _name, _docstring) { #_name, (PyCFunction)_name, _flag, PyDoc_STR(_docstring) }
+#define FUNC(_name, _flag, _docstring) { #_name, (PyCFunction)_name, _flag, PyDoc_STR(_docstring) }
 
 static PyMethodDef _methods[] = {
-        FUNC(METH_VARARGS, fit, "Print list of lists of ints without changing it"),
-        {"get_flag",(PyCFunction)get_flag,METH_VARARGS,PyDoc_STR("recive the goal as an argument and do the requested operation")},
+        FUNC(fit, METH_VARARGS, "Print list of lists of ints without changing it"),
+        FUNC(get_flag, METH_VARARGS, "recive the goal as an argument and do the requested operation"),
         {NULL, NULL, 0, NULL}
 };
 
 
 static struct PyModuleDef _moduledef = {
-        PyModuleDef_HEAD_INIT,
+         PyModuleDef_HEAD_INIT,
         "spkmeans",
         NULL,
         -1,
         _methods
 };
 
-PyMODINIT_FUNC
-PyInit_spkmeans(void)
+PyMODINIT_FUNC PyInit_spkmeans(void)
 {
     return PyModule_Create(&_moduledef);
 }

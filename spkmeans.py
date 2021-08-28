@@ -87,7 +87,6 @@ def check_param(k, goal,filename):
     assert type(filename) is str, "file path must be a string"
 
 def parse2():
-    print(sys.argv)
     if len(sys.argv)== 4:
         k = int( sys.argv[1])
         goal = str(sys.argv[2])
@@ -156,7 +155,7 @@ def test_eigen(A,T):
     compare_eigen_vectors(A, np.array(T[1:]), T[0])  # compre numpy values, sainty check // CHECK SORT !
     print("Done our values ! ")
 
-def main():
+if __name__ == "__main__":
     T0 = time.process_time()
     np.random.seed(0)
     k, goal, filename = parse2()
@@ -164,15 +163,13 @@ def main():
     assert len(observations) > k, "k must be smaller than number of input vectors"
     T,k = spkmeans.get_flag(goal, k, observations)
 
-    test_eigen(observations,T)
+#    test_eigen(observations,T)
 
     if goal=="spk":
-
         indices = find_initial_clusters( T, k)
         clusters = get_cluster_list( T, indices)
        # print(f"py fit: n={len(T)},  k={k}  d={len(T[0])}")
         spkmeans.fit(T, clusters, indices)
-    print("done !")
-    return
+    #print("done  py!")
 
-#main()
+

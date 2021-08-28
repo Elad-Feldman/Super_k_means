@@ -63,9 +63,9 @@ void renorm_matrix_rows(double** U, int n,int k, double** T);
 /*************** Matrix functions  END ******************/
 
 /*************** kmean  START ******************/
-static double find_distance(double *dot, double *center, int d);
-static int get_index_of_closest_cluster(double* dot, double** cluster_list, int d, int k );
-static void update_cluster_center(double* dot, double * center,int cluster_size,int d,int sign);
+double find_distance(double *dot, double *center, int d);
+int get_index_of_closest_cluster(double* dot, double** cluster_list, int d, int k );
+void update_cluster_center(double* dot, double * center,int cluster_size,int d,int sign);
 double** get_init_clusters_list(double** T,int k);
 int * init_clusters_indexes(int k);
 void simple_kmean (double ** T_mat, double ** T_cluster_list, int * cluster_index_list, int n, int k, int d);
@@ -114,5 +114,7 @@ void load_string(char** str,char* cpy);
 
 int string_to_doubles(char *row,double* arr);
 Tuple2 load_observations_from_file(double** observations, char* file_name);
+
+
 
 int main(int argc, char* argv[]);
