@@ -2,6 +2,7 @@ import random
 import os
 import numpy as np
 import time
+from sklearn import datasets
 N = 50
 D = 5
 MID = 400
@@ -10,7 +11,7 @@ TEST_NUM = 3
 
 np.random.seed(42)
 random.seed(42)
-os.system("python  setup.py build_ext --inplace")
+#os.system("python  ../setup.py build_ext --inplace")
 
 def print_if_files_are_diff(fn1, fn2):
     msg = f"NOT STABLE! {fn1} and {fn2} differ at "
@@ -57,11 +58,15 @@ def print_matrix(mat):
         print_vector(row)
 
 def create_matrix_4digits(n,d):
+    X, _ = datasets.make_blobs(n_samples=n, centers=d, n_features=d, shuffle=True, random_state=31)
+    X = np.round(X, 4).tolist()
+    print(X)
+
     B = (0.5 - np.random.rand(n, d))
     A = B
     if n == d:
          A = np.tril(B) + np.tril(B, -1).T
-    return A.round(4).tolist()
+    return X.round(4).tolist()
 
 def create_test_file(filename,is_symatric):
     n = random.randint(4, N)
@@ -150,6 +155,7 @@ def test_3_basic(is_py):
 #create_output_symatric()
 
 #create_output()
-create_output_symatric()
+#create_output_symatric()
+
 
 

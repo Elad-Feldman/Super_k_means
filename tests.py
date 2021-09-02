@@ -39,6 +39,8 @@ def compre_mats(my_result, test_results ):
     ## print(test_results)
     if count >0:
         print(f"differ in {count} / {n1*d1} elements")
+    else:
+        print( "PASS !")
 
 def run_and_compre(flag,test_ind,k):
     i = test_ind
@@ -63,15 +65,12 @@ def run_and_compre(flag,test_ind,k):
     compre_mats(my_result, test_results)
 
 
-os.system( "python  setup.py build_ext --inplace")
+#os.system( "python  setup.py build_ext --inplace")
 def test_loop():
-    flags =["wam","ddg","lnorm","jacobi","spk"] # TODO check spk
+    flags =["wam","ddg","lnorm","jacobi"] # TODO check spk
     for i in range(10):
         print(f"=================={i}========================")
         for flag in flags:
-            if flag == "spk":
-                run_and_compre(flag, i, 0)
-            else:
                 run_and_compre(flag, i, 1)
     print("Done!!!")
 
@@ -80,3 +79,32 @@ def test_loop():
 test_loop()
 
 
+def get_spk_tests():
+    spk_arg_list = []
+    files = os.listdir('tests/reference/general/')
+    for file in files:
+        if "spk"  not in file:
+            continue
+        if "_P"  not in file:
+            continue
+        if file[5:6] =="_":
+            i = int( file[4:5])
+        else:
+            i = int(file[4:6])
+        file_sp = file.split("_")
+        k=file_sp[2]
+        args = (k,i)
+        spk_arg_list.append(args)
+    return spk_arg_list
+
+def run_C_tests():
+    spk_arg_list = get_spk_tests()
+    for k,i in spk_arg_list:
+        args = f" {k} spk  tests/test_data/spk_tests/test{i}.csv"
+        my_result_file = f"tests/reference/my_spk/output_{i}_spk_{k}_C_ELAD.txt"
+        cmd = f"spkmeans {args} >{my_result_file} "
+        print(cmd)
+        os.system(cmd)
+
+
+#run_C_tests()
