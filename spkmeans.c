@@ -70,7 +70,7 @@ void print_vector(double* a,int n){
     int i;
     if (Ver){
         for (i = 0; i < n; i++){
-            printf("%.4f",a[i]);
+            printf("%6.4f",a[i]);
             if (i<n-1)
                 printf(",");
         }
