@@ -14,9 +14,8 @@ void ver_mat_print( double  ** mat, int n, int d, char* msg) {
 }
 void ver_vec_print( double  *vec ,int n , char* msg){
     if (Ver){
-        printf("===%s===\n",msg);
+        printf("%10s:  ",msg);
         print_vector(vec,n );
-        printf("=====done====\n");
     }
 }
 
@@ -70,7 +69,7 @@ void print_vector(double* a,int n){
     int i;
     if (Ver){
         for (i = 0; i < n; i++){
-            printf("%6.4f",a[i]);
+            printf("%8.4f",a[i]);
             if (i<n-1)
                 printf(",");
         }
@@ -183,8 +182,7 @@ double* renormlized_vector(double* a, int n) {
 
     my_assert(norm_vec != NULL);
     if (norm == 0) { /* SHOUD NOT HAPPEN AS SAID IN https://moodle.tau.ac.il/mod/forum/discuss.php?d=163019 */
-        printf("got ZERO Vector\n");
-        return norm_vec;
+              return norm_vec;
     }
     for (j = 0; j < n; j++) {
         norm_vec[j] = (a[j] / norm);
@@ -348,12 +346,17 @@ void renorm_matrix_rows(double** U, int n,int k, double** T)
 
 /*************** kmean  START ******************/
 double find_distance(double *dot, double *center, int d){
-    double dis;
+    double dis,tmp;
+
     int i;
     dis = 0;
+        for ( i = 0; i < d; i++){
+            tmp = dot[i] - center[i];
 
-    for ( i = 0; i < d; i++)
-        dis += (dot[i] - center[i]) * (dot[i] - center[i]);
+            dis += pow(tmp,2);
+
+        }
+
     return  dis;
 
 }
@@ -364,18 +367,19 @@ int get_index_of_closest_cluster(double* dot, double** cluster_list, int d, int 
     double tmp_dis;
     j = 0;
     min_dis = find_distance(dot, cluster_list[0], d);
-
-    for (i = 1; i < k; i++)
+      for (i = 1; i < k; i++)
     {
         tmp_dis = find_distance(dot, cluster_list[i], d);
+
         if (tmp_dis < min_dis)
         {
             min_dis = tmp_dis;
+       //     printf("%4.4f,  ",min_dis);
             j = i;
-            printf("shortest disttance was %d, now is %d\n",j,i);
+
         }
+
     }
-    printf("get index %d\n",j);
     return j;
 }
 void update_cluster_center(double* dot, double * center,int cluster_size,int d,int sign) {
@@ -423,8 +427,8 @@ void simple_kmean (double ** T_mat, double ** T_cluster_list, int* cluster_index
     int i, j ,max_iter ;
     int is_a_cluster_changed , count_iter;
     int *T_at,   *move_T_to, *T_cluster_size ;
-    printf("n=%d\n",n);
-    max_iter = 300;
+   // printf("n=%d\n",n);
+    max_iter = 100;
     T_at = (int*) calloc(n, sizeof(int) );
     my_assert(T_at != NULL);
     move_T_to = (int*) calloc(n, sizeof(int) );
@@ -446,15 +450,16 @@ void simple_kmean (double ** T_mat, double ** T_cluster_list, int* cluster_index
 
     is_a_cluster_changed = 1;
     count_iter = 0;
+
     while (count_iter < max_iter && is_a_cluster_changed) {
         is_a_cluster_changed = 0;
         count_iter++;
 
-        for (i = 0; i < n; i++) /*find nearest cluster for each dot */
+        for (i = 0; i < n; i++){
             j = get_index_of_closest_cluster(T_mat[i], T_cluster_list, d, k);
             move_T_to[i] = j;
-            printf(" move dot %d to %d\n",i,move_T_to[i]);
 
+        } /*find nearest cluster for each dot */
         for (j = 0; j < n; j++) {/* update clusters*/
             if (T_at[j] == -1) { /* dot is outside of all cluster */
                 T_at[j] = move_T_to[j]; /* place dot at new place */
@@ -1002,7 +1007,6 @@ void start_jacobi(double** observations , int n, double*** E)
 spk_results activate_flag(char* goal,double** observations , int k, int n, int d)
 {
     /* run all the flags, that are not spk */
-
     int i,j;
     spk_results res;
     Eigen eigen;
@@ -1053,16 +1057,13 @@ spk_results activate_flag(char* goal,double** observations , int k, int n, int d
     L = create_matrix(n, n);
     create_L_norm(D,W,n,L);
     eigen = find_eigen_vectors_and_values(L, n);
-    //ver_mat_print(L,n,n,"lnorm");
     inplace_transpose_mat(eigen.vectors,n,n); /*  now each row is an eigen  vector, easily reordered */
-    //print_eigen(eigen);
     mergeSort(eigen.values,eigen.ranks,0,n-1);
 
     re_order_matrix_by_indces(eigen.vectors, eigen.ranks, n);
-
+    //ver_mat_print(eigen.vectors,n,n," sorted eigen Values Matrix");
      if (k==0) /* TODO what about k<0 ? */
         k = eigengap_huristic(eigen);
-   // print_eigen(eigen);
     U  = create_matrix(n, k);
 
     for (i=0; i<n; i++)
@@ -1073,11 +1074,11 @@ spk_results activate_flag(char* goal,double** observations , int k, int n, int d
 
         }
 
-    printf("C: n=%d,  k=%d\n",n,k);
-    //ver_mat_print(U,n,k," U Matrix");
+  //  printf("C: n=%d,  k=%d\n",n,k);
+   // ver_mat_print(U,n,k," U Matrix");
     T = create_matrix(n,k);
     renorm_matrix_rows(U, n,k, T);
-    ver_mat_print(T,n,k," T Matrix");
+ //   ver_mat_print(T,n,k," T Matrix");
 
     free_matrix(W,n);
     free_matrix(D,n);
@@ -1182,7 +1183,7 @@ int main(int argc, char* argv[])
 
     assert_goal(goal);
     sizes = load_observations_from_file(observations, file_name);
-    n=sizes.i;    d=sizes.j;
+    n=sizes.i;    d=sizes.j;/* TODO d does not chnage */
 
     /* printf("=========\nk:%d\ngoal %s\nfile_name: %s\n==========\n",k,goal,file_name); */
     Res = activate_flag( goal, observations , k,  n, d);
@@ -1192,7 +1193,8 @@ int main(int argc, char* argv[])
       /*  printf("found k: %d \n",Res.k); */
         T_clusters_list = get_init_clusters_list(Res.T,k);
         T_clusters_indexes = init_clusters_indexes(k);
-        simple_kmean(Res.T, T_clusters_list, T_clusters_indexes,n,k,d);
+        printf("k=%d, d=%d\n",k,d);
+        simple_kmean(Res.T, T_clusters_list, T_clusters_indexes,n,k,k);
         free_matrix(T_clusters_list,k);
         free(T_clusters_indexes);
 

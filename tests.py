@@ -65,7 +65,7 @@ def run_and_compre(flag,test_ind,k):
     compre_mats(my_result, test_results)
 
 
-#os.system( "python  setup.py build_ext --inplace")
+os.system( "python  setup.py build_ext --inplace")
 def test_loop():
     flags =["wam","ddg","lnorm","jacobi"] # TODO check spk
     for i in range(10):
@@ -76,7 +76,7 @@ def test_loop():
 
 
 
-test_loop()
+#test_loop()
 
 
 def get_spk_tests():
@@ -107,4 +107,4 @@ def run_C_tests():
         os.system(cmd)
 
 
-#run_C_tests()
+run_C_tests()
