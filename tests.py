@@ -158,7 +158,7 @@ def run_spk_tests():
             else:
                 cmd = f"python spkmeans.py {args} >{my_result_file} "
 
-            #print(cmd)
+            print("passed"+str(i))
             os.system(cmd)
 
             res =compre_files(my_result_file ,test_results_file)
@@ -171,19 +171,20 @@ def run_spk_tests():
 
 def test_count_empty():
     result_file = "tests/reference/my_spk/output_4_spk_7_C_ELAD.txt"
-    cmd = f"spkmeans  3 spk  tests/test_data/spk_tests/test4.csv"
+    cmd = f"spkmeans  3 spk  tests/test_data/spk_tests/test4.csv > {result_file}"
     count = 0
     N= 100
     for i in range(N):
-        print("=============================start==============================")
+     #   print("=============================start==============================")
         os.system(cmd)
-        print("\n=============================end==============================")
+      #  print("\n=============================end==============================")
         with open(result_file, "r") as txt_file:
             lines = txt_file.readlines()
         n = len(lines)
         if n==0:
             count +=1
-       # print(f"  from {i}/{N} itertions {count}  are empty  !!")
+        print(i,end=", ")
+    print(f" \n from {i}/{N} itertions {count}  are empty  !!")
 
 
 #test_loop()
@@ -192,5 +193,5 @@ def test_count_empty():
 
 os.system( "python  setup.py build_ext --inplace")
 #test_loop()
-run_spk_tests()
-#test_count_empty()
+#run_spk_tests()
+test_count_empty()
