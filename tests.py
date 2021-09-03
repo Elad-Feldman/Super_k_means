@@ -191,5 +191,6 @@ def test_count_empty():
 #run_spk_tests()
 
 
-
+test_loop()
+run_spk_tests()
 test_count_empty()
