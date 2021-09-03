@@ -12,7 +12,7 @@ void ver_mat_print( double  ** mat, int n, int d, char* msg) {
     if (Ver) {
         printf("===%s===\n", msg);
         print_mat(mat, n, d);
-        printf("=====done====\n");
+        printf("\n=====done====\n");
     }
 }
 void ver_vec_print( double  *vec ,int n , char* msg){
@@ -304,7 +304,7 @@ void sub_matrix(double** A, double** B, double** C,int n) {
 void print_mat( double  ** mat, int n, int d)
 {
     int i;
-    print_verbose("===========TURN OFF VER=1 ===============\n");
+ //   print_verbose("===========TURN OFF VER=1 ===============\n");
     for (i = 0; i < n; i++) {
         print_vector(mat[i],d);
         if (i<n-1)
@@ -391,11 +391,13 @@ void update_cluster_center(double* dot, double * center,int cluster_size,int d,i
     double* center_temp;
     int i;
     if (cluster_size + sign == 0){
+            printf("ignore me\n");
                return; /* remove dot from cluster, but don't change cluster position  SHOULD NOT HAPPAN */
     }
 
     if (cluster_size==0){
-       /* HOULD NOT HAPPAN */
+        printf("ignore me\n");
+       /* SHOULD NOT HAPPAN */
         return;
     }
 
@@ -633,7 +635,7 @@ void update_V(int i, int j, int  n, double c, double s,double** V){
     }
 }
 
-double** find_new_A(int i, int j, int n, double c, double s, double** A, double ** A1){
+void update_A_f(int i, int j, int n, double c, double s, double** A, double ** A1){
     int r;
     for(r = 0; r < n; r++){
         if( r != i && r != j ){
@@ -648,7 +650,7 @@ double** find_new_A(int i, int j, int n, double c, double s, double** A, double 
     A1[j][j] = pow(s,2) * A[i][i] + pow(c,2) * A[j][j] + 2.0 * s * c * A [i][j];
     A1[i][j] = 0;
     A1[j][i] = 0;
-    return A1;
+
 
 }
 
@@ -712,11 +714,9 @@ Eigen find_eigen_vectors_and_values(double** L, int n){
         c = calc_c(t);
         s = t * c;
 
-
         update_V(i, j, n, c, s, V); /* V = P(i) * P_(i+1) */
-        A_f = find_new_A(i, j, n, c, s, A, A_f);
+        update_A_f(i, j, n, c, s, A, A_f);
         convergence = check_convergence(A,A_f,n);
-
         copy_matrix(A,A_f,n,n);
     }
 
@@ -998,9 +998,6 @@ spk_results activate_flag(char* goal,double** observations , int k, int n, int d
     double **W ,**D ,**L, **E, **U, **T;
     res.T_size = n;
     res.k = n;
-
-
-
     if (is_goal("wam")){
         start_wam(observations,n,d,&W);
         res.T = W;
@@ -1035,12 +1032,15 @@ spk_results activate_flag(char* goal,double** observations , int k, int n, int d
     W = create_matrix(n, n);
     create_adj_mat(observations,n,d,W);
 
+
     D = create_matrix(n, n);
     create_diagonal_degree_mat(W,n,D);
+
     D_sqrt(D,n);
 
     L = create_matrix(n, n);
     create_L_norm(D,W,n,L);
+
     eigen = find_eigen_vectors_and_values(L, n);
     inplace_transpose_mat(eigen.vectors,n,n); /*  now each row is an eigen  vector, easily reordered */
     mergeSort(eigen.values,eigen.ranks,0,n-1);
@@ -1062,7 +1062,6 @@ spk_results activate_flag(char* goal,double** observations , int k, int n, int d
 
     T = create_matrix(n,k);
     renorm_matrix_rows(U, n,k, T);
-
     free_matrix(W,n);
     free_matrix(D,n);
     free_matrix(L,n);
@@ -1122,11 +1121,11 @@ Tuple2 load_observations_from_file(double** observations, char* file_name)
     }
     n = i;
     /* change the size of observations to match the file */
-    observations = (double **) realloc(observations,n * sizeof(double *));
+    observations = (double **) realloc(observations,n * sizeof(double *) );
     assert_not_null(observations);
     for (i = 0; i < n; i++)
     {
-        observations[i] = (double *) realloc(observations[i],d* sizeof(double));
+        observations[i] = (double *) realloc(observations[i],d* sizeof(double) );
         assert_not_null(observations[i]);
     }
     fclose(fp);
