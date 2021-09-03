@@ -55,7 +55,7 @@ def get_cluster_distance(dot, cluster):
 
 def find_initial_clusters(n_dots, k):
     n = len(n_dots)
-    random_index = np.random.randint(n-1)
+    random_index = np.random.choice(n)
     first_cluster = n_dots[random_index]
     clusters_list = [first_cluster]
     indices = [random_index]

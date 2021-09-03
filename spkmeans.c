@@ -1110,18 +1110,22 @@ Tuple2 load_observations_from_file(double** observations, char* file_name)
     d = 10;
 
     fp = fopen(file_name,"r");
-    //row = (char* ) calloc(1000, sizeof(char));
+    row = (char* ) calloc(1000, sizeof(char));
+    assert_not_null(row);
+    row = (char* ) calloc(1000, sizeof(char));
     assert_not_null(row);
     i =0;
     while(fscanf(fp,"%s",row)==1)
     { /* load data */
         d = string_to_doubles(row, observations[i]);
         i++;
-        free(row);
+    /*    free(row);*/
     }
     n = i;
     /* change the size of observations to match the file */
     /*observations = (double **) realloc(observations,n * sizeof(double *));*/
+    assert_not_null(observations);
+    observations = (double **) realloc(observations,n * sizeof(double *));
     assert_not_null(observations);
     for (i = 0; i < n; i++)
     {
@@ -1129,7 +1133,7 @@ Tuple2 load_observations_from_file(double** observations, char* file_name)
         assert_not_null(observations[i]);
     }
     fclose(fp);
-    /*free(row);*/
+    free(row);
     sizes.i = n;
     sizes.j = d;
     return sizes;
@@ -1161,7 +1165,7 @@ int main(int argc, char* argv[])
 
     assert_goal(goal);
     sizes = load_observations_from_file(observations, file_name);
-    printf("loaded\n");
+
     n=sizes.i;    d=sizes.j;
 
     Res = activate_flag( goal, observations , k,  n, d);

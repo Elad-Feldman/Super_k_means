@@ -68,7 +68,7 @@ int get_index_of_closest_cluster(double* dot, double** cluster_list, int d, int 
 void update_cluster_center(double* dot, double * center,int cluster_size,int d,int sign);
 double** get_init_clusters_list(double** T,int k);
 int * init_clusters_indexes(int k);
-void simple_kmean (double ** T_mat, double ** T_cluster_list, int* cluster_index_list, int n, int k, int d,int is_Py_call);
+void simple_kmean (double ** T_mat, double ** T_cluster_list, int * cluster_index_list, int n, int k, int ,int is_Py_call);
 /*************** kmean  END ******************/
 
 
