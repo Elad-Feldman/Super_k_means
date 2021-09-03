@@ -200,7 +200,7 @@ static PyObject* fit(PyObject *self, PyObject *args)
     n_c = (int) n;
     k_c = (int) k;
 
-    simple_kmean(T_c, cluster_list_c , cluster_index_list_c, n_c, k_c, k_c);
+    simple_kmean(T_c, cluster_list_c , cluster_index_list_c, n_c, k_c, k_c,1);
      /* _cluster_list =  get_py_lst_from_c_matrix(cluster_index_list_c ,k,k); */
 
     /* free memory */

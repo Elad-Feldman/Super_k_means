@@ -1,29 +1,50 @@
 import os
 import  numpy as np
 import sys
+import filecmp
 PRINT_DIFF_ELEM = False
 np.set_printoptions(threshold=sys.maxsize,precision= 4)
 
+def find_stable_tests():
+    stable_spk_list = []
+    pathy = 'tests/reference/my_spk/'
+    files = os.listdir(pathy)
+    lines = []
+    ADD= True
+    for file in files:
+        full_path = pathy + file
+        with open(full_path, "r") as txt_file:
+             lines = txt_file.readlines()
+        for line in lines:
+       #     print("\t"+ line[:-1], sep="")
+            if "empty" in line:
+                print("NOT STABLE " +file)
+                ADD = False
+
+        if ADD:
+            stable_spk_list.append(file)
+            print(file)
+
+
 def compre_mats(my_result, test_results ):
-
-
-    n1 = len(my_result)
-    if n1==0:
-        print ("EMPTY FILE !")
-        return 0
-    d1 = len(my_result[0])
     n2 = len(test_results)
-    d2 = len(test_results[0])
+    n1 = len(my_result)
     if (n1 != n2):
         print("number of rows differ")
         print(f"my: {n1}")
         print(f"test:{n2}")
         return 0
-    if (d1 != d2):
-        print("number of cols differ")
-        print(f"my: {d1}")
-        print(f"test:{d2}")
+    if n1==0:
+        print ("EMPTY FILE !")
         return 0
+    if n1 > 1:
+        d1 = len(my_result[0])
+        d2 = len(test_results[0])
+        if (d1 != d2):
+            print("number of cols differ")
+            print(f"my: {d1}")
+            print(f"test:{d2}")
+            return 0
 
     count = 0
     for i in range(n1):
@@ -77,6 +98,32 @@ def test_loop():
 
 
 #test_loop()
+def not_equal_print(f1,f2,l1,l2):
+    print(f1)
+    print(l1)
+    print(f2)
+    print(l2)
+
+def compre_files(f1,f2):
+    with open(f1, "r") as txt_file:
+        l1 = txt_file.readlines()
+    with open(f2, "r") as txt_file:
+        l2 = txt_file.readlines()
+    if len(l1) != len(l2):
+        print("diff length")
+        not_equal_print(f1,f2,l1,l2)
+        return False
+    for r1,r2 in zip(l1,l2):
+        if len(r1) != len(r2):
+            print("diff row length")
+            not_equal_print(f1, f2, l1, l2)
+            return False
+        for e1,e2 in zip(r1,r2):
+            if e1 != e2:
+                print("diff elemnts")
+                not_equal_print(f1, f2, l1, l2)
+                return False
+    return True
 
 
 def get_spk_tests():
@@ -97,14 +144,37 @@ def get_spk_tests():
         spk_arg_list.append(args)
     return spk_arg_list
 
-def run_C_tests():
+def run_spk_tests():
     spk_arg_list = get_spk_tests()
     for k,i in spk_arg_list:
-        args = f" {k} spk  tests/test_data/spk_tests/test{i}.csv"
-        my_result_file = f"tests/reference/my_spk/output_{i}_spk_{k}_C_ELAD.txt"
-        cmd = f"spkmeans {args} >{my_result_file} "
-        print(cmd)
-        os.system(cmd)
+        if i=="1" or i ==1:
+            continue
+        for lang in ["C","P"]:
+            args = f" {k} spk  tests/test_data/spk_tests/test{i}.csv"
+
+            my_result_file = f"tests/reference/my_spk/output_{i}_spk_{k}_{lang}_ELAD.txt"
+            test_results_file=f"tests/reference/spk_gen/test{i}_spk_{k}_output_{lang}.txt"
+            if lang == "C":
+                cmd = f"spkmeans {args} >{my_result_file} "
+            else:
+                cmd = f"python spkmeans.py {args} >{my_result_file} "
+
+            #print(cmd)
+            os.system(cmd)
+
+            res =compre_files(my_result_file ,test_results_file)
+            if not res:
+                print("Failed")
+                print(cmd)
+                print("=============================================================================")
 
 
-run_C_tests()
+
+
+
+#test_loop()
+#run_spk_tests()
+#find_stable_tests()
+
+run_spk_tests()
+
