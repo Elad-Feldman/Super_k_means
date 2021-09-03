@@ -172,17 +172,19 @@ def run_spk_tests():
 
 def test_count_empty():
     result_file = "tests/reference/my_spk/output_4_spk_7_C_ELAD.txt"
-    cmd = f"spkmeans  7 spk  tests/test_data/spk_tests/test4.csv > {result_file}"
+    cmd = f"spkmeans  3 spk  tests/test_data/spk_tests/test4.csv"
     count = 0
-    N= 400
+    N= 100
     for i in range(N):
+        print("=============================start==============================")
         os.system(cmd)
+        print("\n=============================end==============================")
         with open(result_file, "r") as txt_file:
             lines = txt_file.readlines()
         n = len(lines)
         if n==0:
             count +=1
-        print(f"  from {i}/{N} itertions {count}  are empty  !!")
+       # print(f"  from {i}/{N} itertions {count}  are empty  !!")
 
 
 #test_loop()

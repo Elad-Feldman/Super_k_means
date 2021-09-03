@@ -223,10 +223,9 @@ void free_matrix( double  ** A, int rows)
     int i;
     for (i = 0; i < rows; i++){
         free(A[i]);
-        A[i] = NULL;
     }
     free(A);
-    A = NULL;
+
 }
 
 void inplace_transpose_mat(double** mat, int rows, int cols){
@@ -1079,8 +1078,8 @@ spk_results activate_flag(char* goal,double** observations , int k, int n, int d
 void load_string(char** str,char* cpy)
 {
     int len;
-    len = (int) strlen (cpy);
-    *str = (char  *) malloc(len * sizeof(char));
+    len = ( (int) strlen (cpy)) + 1;
+    *str = (char  *) malloc(  len * sizeof(char) );
     assert_not_null(*str);
     strcpy(*str, cpy);
 }
@@ -1163,6 +1162,7 @@ int main(int argc, char* argv[])
 
     assert_goal(goal);
     sizes = load_observations_from_file(observations, file_name);
+    printf("loaded\n");
     n=sizes.i;    d=sizes.j;
 
     Res = activate_flag( goal, observations , k,  n, d);
