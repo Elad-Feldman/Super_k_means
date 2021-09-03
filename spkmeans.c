@@ -1096,7 +1096,7 @@ void load_string(char** str,char* cpy)
 {
     int len;
     len = (int) strlen (cpy);
-    *str = (char  *) malloc(len * sizeof(char));
+    *str = (char  *) malloc((len+1) * sizeof(char));
     my_assert(*str != NULL);
     strcpy(*str, cpy);
 }
