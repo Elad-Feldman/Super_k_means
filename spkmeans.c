@@ -391,13 +391,11 @@ void update_cluster_center(double* dot, double * center,int cluster_size,int d,i
     double* center_temp;
     int i;
     if (cluster_size + sign == 0){
-            printf("ignore me\n");
                return; /* remove dot from cluster, but don't change cluster position  SHOULD NOT HAPPAN */
     }
 
     if (cluster_size==0){
-        printf("ignore me\n");
-       /* SHOULD NOT HAPPAN */
+       /* HOULD NOT HAPPAN */
         return;
     }
 
@@ -1032,15 +1030,12 @@ spk_results activate_flag(char* goal,double** observations , int k, int n, int d
     W = create_matrix(n, n);
     create_adj_mat(observations,n,d,W);
 
-
     D = create_matrix(n, n);
     create_diagonal_degree_mat(W,n,D);
-
     D_sqrt(D,n);
 
     L = create_matrix(n, n);
     create_L_norm(D,W,n,L);
-
     eigen = find_eigen_vectors_and_values(L, n);
     inplace_transpose_mat(eigen.vectors,n,n); /*  now each row is an eigen  vector, easily reordered */
     mergeSort(eigen.values,eigen.ranks,0,n-1);
@@ -1060,8 +1055,10 @@ spk_results activate_flag(char* goal,double** observations , int k, int n, int d
         }
 
 
-    T = create_matrix(n,k);
+    T = (double  ** ) calloc(n , sizeof( double * ) );
+    assert_not_null(T);
     renorm_matrix_rows(U, n,k, T);
+
     free_matrix(W,n);
     free_matrix(D,n);
     free_matrix(L,n);
@@ -1094,8 +1091,6 @@ int string_to_doubles(char *row,double* arr)
         arr[i] = atof(ptr);
         ptr = 	strtok(NULL, ",");
         i++;
-        /* printf("we got %d features",i); */
-
     }
     return i;
 
@@ -1108,26 +1103,20 @@ Tuple2 load_observations_from_file(double** observations, char* file_name)
     FILE *fp;
     char* row;
     Tuple2 sizes;
-    d = 10;
+    d = 50;
 
     fp = fopen(file_name,"r");
     row = (char* ) calloc(1000, sizeof(char));
     assert_not_null(row);
     i =0;
+
     while(fscanf(fp,"%s",row)==1)
     { /* load data */
         d = string_to_doubles(row, observations[i]);
         i++;
+
     }
     n = i;
-    /* change the size of observations to match the file */
-    observations = (double **) realloc(observations,n * sizeof(double *) );
-    assert_not_null(observations);
-    for (i = 0; i < n; i++)
-    {
-        observations[i] = (double *) realloc(observations[i],d* sizeof(double) );
-        assert_not_null(observations[i]);
-    }
     fclose(fp);
     free(row);
     sizes.i = n;
@@ -1148,11 +1137,11 @@ int main(int argc, char* argv[])
     char*  file_name;
     double** T_clusters_list;
     int * T_clusters_indexes;
-    double** observations;
+    double** observations, **observations_load;
     Tuple2 sizes;
     spk_results Res;
-    n = 100 ;  d = 50;
-    observations = create_matrix(n,d);
+    n = 50 ;  d = 50;/*for jacobi d=50*/
+    observations_load =  create_matrix(n, d);
     super_assert((argc==4) );
     super_assert( (atof(argv[1]) == atoi(argv[1])) ); /* is k an integer */
     k =  atoi(argv[1]);
@@ -1160,12 +1149,14 @@ int main(int argc, char* argv[])
     load_string(&file_name,argv[3]);
 
     assert_goal(goal);
-    sizes = load_observations_from_file(observations, file_name);
 
-    n=sizes.i;    d=sizes.j;
+    sizes = load_observations_from_file(observations_load, file_name);
+
+    n = sizes.i;    d = sizes.j;
+    observations =  create_matrix(n, d);
+    copy_matrix(observations,observations_load,n,d);
 
     Res = activate_flag( goal, observations , k,  n, d);
-
     if(is_goal("spk")){
         k = Res.k;
       /*  printf("found k: %d \n",Res.k); */
@@ -1179,6 +1170,7 @@ int main(int argc, char* argv[])
     }
 
     /* Free all */
+    free_matrix(observations_load,50);
     free(goal);
     free(file_name);
     free_matrix(observations, n);
