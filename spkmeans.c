@@ -1162,7 +1162,7 @@ int main(int argc, char* argv[])
 
     assert_goal(goal);
     sizes = load_observations_from_file(observations, file_name);
-    printf("loaded\n");
+
     n=sizes.i;    d=sizes.j;
 
     Res = activate_flag( goal, observations , k,  n, d);
