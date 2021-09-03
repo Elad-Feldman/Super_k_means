@@ -191,6 +191,6 @@ def test_count_empty():
 
 
 os.system( "python  setup.py build_ext --inplace")
-test_loop()
+#test_loop()
 run_spk_tests()
-test_count_empty()
+#test_count_empty()

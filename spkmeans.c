@@ -511,11 +511,11 @@ void create_adj_mat(double** observations, int n, int d,double** W)
     assert_positive(n);
     assert_positive(d);
 
-
     for (i = 0; i < n; i++)
     {
         for (j = 0; j < i; j++) /* matrix is symtric, W[j][i] = W[i][j];   */
         {
+
             norm = find_vec_norm_diff(observations[i], observations[j] , d);
             W[i][j] = exp( (-norm) / 2);
             W[j][i] = W[i][j];
@@ -1060,7 +1060,8 @@ spk_results activate_flag(char* goal,double** observations , int k, int n, int d
         }
 
 
-    T = create_matrix(n,k);
+    T = (double  ** ) calloc(n , sizeof( double * ) );
+    assert_not_null(T);
     renorm_matrix_rows(U, n,k, T);
 
     free_matrix(W,n);
@@ -1107,26 +1108,21 @@ Tuple2 load_observations_from_file(double** observations, char* file_name)
     FILE *fp;
     char* row;
     Tuple2 sizes;
-    d = 10;
+    d = 50;
 
     fp = fopen(file_name,"r");
     i =0;
+    row = row = (char* ) calloc(1000, sizeof(char));
+    assert_not_null(row);
     while(fscanf(fp,"%s",row)==1)
     { /* load data */
         d = string_to_doubles(row, observations[i]);
         i++;
-        free(row);
+
     }
     n = i;
-    /* change the size of observations to match the file */
-    observations = (double **) realloc(observations,n * sizeof(double *));
-    assert_not_null(observations);
-    for (i = 0; i < n; i++)
-    {
-        observations[i] = (double *) realloc(observations[i],d* sizeof(double));
-        assert_not_null(observations[i]);
-    }
     fclose(fp);
+    free(row);
     sizes.i = n;
     sizes.j = d;
     return sizes;
@@ -1145,11 +1141,11 @@ int main(int argc, char* argv[])
     char*  file_name;
     double** T_clusters_list;
     int * T_clusters_indexes;
-    double** observations;
+    double** observations, **observations_load;
     Tuple2 sizes;
     spk_results Res;
-    n = 50 ;  d = 10;
-    observations =  create_matrix(n, d);
+    n = 50 ;  d = 50;/*for jacobi d=50*/
+    observations_load =  create_matrix(n, d);
     super_assert((argc==4) );
     super_assert( (atof(argv[1]) == atoi(argv[1])) ); /* is k an integer */
     k =  atoi(argv[1]);
@@ -1157,12 +1153,13 @@ int main(int argc, char* argv[])
     load_string(&file_name,argv[3]);
 
     assert_goal(goal);
-    sizes = load_observations_from_file(observations, file_name);
 
-    n=sizes.i;    d=sizes.j;
+    sizes = load_observations_from_file(observations_load, file_name);
 
+    n = sizes.i;    d = sizes.j;
+    observations =  create_matrix(n, d);
+    copy_matrix(observations,observations_load,n,d);
     Res = activate_flag( goal, observations , k,  n, d);
-
     if(is_goal("spk")){
         k = Res.k;
       /*  printf("found k: %d \n",Res.k); */
@@ -1176,6 +1173,7 @@ int main(int argc, char* argv[])
     }
 
     /* Free all */
+    free_matrix(observations_load,50);
     free(goal);
     free(file_name);
     free_matrix(observations, n);
