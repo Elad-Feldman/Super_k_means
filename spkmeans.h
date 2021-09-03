@@ -53,7 +53,7 @@ double* renormlized_vector(double* a, int n);
 double** create_matrix(int n,int d);
 void free_matrix(double** A,int n);
 double** transpose_mat(double** mat, int n, int D);
-void mult_matrix(double** A, double** B, double ** C ,int n,int is_diag);
+void mult_matrix(double** A, double** B, double ** C ,int n);
 void copy_matrix(double** A, double** B ,int n, int m);
 void sub_matrix(double** A, double** B, double ** C, int n);
 void print_mat( double  ** mat, int n, int d);
@@ -68,7 +68,7 @@ int get_index_of_closest_cluster(double* dot, double** cluster_list, int d, int 
 void update_cluster_center(double* dot, double * center,int cluster_size,int d,int sign);
 double** get_init_clusters_list(double** T,int k);
 int * init_clusters_indexes(int k);
-void simple_kmean (double ** T_mat, double ** T_cluster_list, int * cluster_index_list, int n, int k, int d);
+void simple_kmean (double ** T_mat, double ** T_cluster_list, int* cluster_index_list, int n, int k, int d,int is_Py_call);
 /*************** kmean  END ******************/
 
 
