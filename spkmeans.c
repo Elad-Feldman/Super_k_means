@@ -2,28 +2,14 @@
 
 /* gcc spkmeans.c && gcc  -o spkmeans spkmeans.c && spkmeans  5  jacobi   tests/test_data/jacobi_tests/test7.csv  */
 
-#define Ver 0     /* TODO  to zero before submitting */
-#define print_verbose(x) if(Ver && printf(x)){}
-#define my_assert(cond) assert( (cond) && "An Error Has Occured" )
-#define isNull(x) ( x == NULL )
-#define assert_not_null(x) super_assert( !isNull(x) ) /* if x is a null - this is an error */
-#define assert_positive(x) super_assert( (x > 0) ) /* if x is a null - this is an error */
-void ver_mat_print( double  ** mat, int n, int d, char* msg) {
-    if (Ver) {
-        printf("===%s===\n", msg);
-        print_mat(mat, n, d);
-        printf("\n=====done====\n");
-    }
-}
-void ver_vec_print( double  *vec ,int n , char* msg){
-    if (Ver){
-        printf("%10s:  ",msg);
-        print_vector(vec,n );
-    }
-}
-
 
 /****** small function START *******/
+
+double fix_neg_zero(double num){
+    if (-0.00005 < num && num < 0)
+        num = 0;
+    return num;
+}
 void super_assert(int cond){
     if (cond) {
         return;
@@ -45,20 +31,15 @@ int assert_goal(char* goal)
         return 1;
     if (strcmp(goal,"jacobi")==0)
         return 1;
-     printf("Invalid Input");
-     assert(0);
-     return 0;
+    printf("Invalid Input");
+    assert(0);
+    return 0;
 
 
 
 }
-/****** small function START *******/
 
-double fix_neg_zero(double num){
-     if (-0.00005 < num && num < 0)
-         num = 0;
-    return num;
-}
+/****** small function  END *******/
 
 
 /*************** Vectors  START ******************/
@@ -72,34 +53,19 @@ void print_vector_int(int* a,int n){
             printf(",");
 
     }
-
     printf("\n");
 
 }
-void print_vector(double* a,int n){
+void print_vector(double* a,int n)
+{
     int i;
-    if (Ver){
-        for (i = 0; i < n; i++){
-            printf("%8.4f",a[i]);
-            if (i<n-1)
-                printf(",");
-        }
-
-    }
-    else
-        {
-            for (i = 0; i < n; i++){
-                printf("%.4f", fix_neg_zero(a[i]) ); /* TOOD fix negative zero */
-                if (i<n-1)
-                    printf(",");
+    for (i = 0; i < n; i++){
+       printf("%.4f", fix_neg_zero(a[i]) ); /* TOOD fix negative zero */
+       if (i<n-1)
+           printf(",");
          }
-
-
     }
 
-
-
-}
 
 double dot_mult_vector(double *a, double *b, int n) {
     double sum;
@@ -110,28 +76,24 @@ double dot_mult_vector(double *a, double *b, int n) {
 
     sum = 0;
     for (i = 0; i < n; i++)
-    {
         sum += a[i] * b[i];
-    }
     return sum;
 }
 double find_vec_norm(double* a, int n) {
     int j;
-    double sum;
-    double tmp;
+    double sum,tmp;
     assert_not_null(a);
     assert_positive(n);
     sum = 0;
     for ( j = 0; j < n; j++)
     {
         tmp = pow(a[j],2);
-        sum += tmp;
+        sum +=  tmp;
     }
 
 
     return sqrt(sum);
 }
-
 double find_vec_norm_diff(double* a, double* b, int n) {
     /* returns the euclidian distance bitween two vectors a, b */
     int i;
@@ -146,13 +108,13 @@ double find_vec_norm_diff(double* a, double* b, int n) {
     free(c);
     return norm;
 }
+
 double sum_vector(double* a, int n) {
     double sum;
     int i;
     sum = 0;
-    for (i = 0; i < n; i++) {
+    for (i = 0; i < n; i++)
         sum += a[i];
-    }
     return sum;
 }
 void swap_int(int *a,int *b)
@@ -188,11 +150,13 @@ double* renormlized_vector(double* a, int n) {
     assert_not_null(a);
     assert_positive(n);
     norm = find_vec_norm(a, n);
+
     norm_vec = calloc(n, sizeof(double));
     assert_not_null(norm_vec);
 
-    if (norm == 0) { /* SHOUD NOT HAPPEN AS SAID IN https://moodle.tau.ac.il/mod/forum/discuss.php?d=163019 */
-              return norm_vec;
+    if (norm == 0) /* SHOULD NOT HAPPEN AS SAID IN https://moodle.tau.ac.il/mod/forum/discuss.php?d=163019 _ THIS IS a ZERO VECTOR*/
+    {
+        return norm_vec;
     }
     for (j = 0; j < n; j++) {
         norm_vec[j] = (a[j] / norm);
@@ -243,8 +207,8 @@ double** transpose_mat(double** mat, int rows, int cols)
     int i, j;
     double** mat_T;
     assert_not_null(mat);
-    assert_positive(rows > 0);
-    assert_positive(cols > 0);
+    assert_positive(rows );
+    assert_positive(cols );
     mat_T = create_matrix(rows, cols);
     for (i = 0; i < rows; i++)
     {
@@ -264,8 +228,8 @@ void mult_matrix(double** A, double** B, double ** C ,int n) {
     assert_not_null(A);
     assert_not_null(B);
     assert_not_null(C);
-    assert_positive(n > 0);
-    B_T = transpose_mat(B, n, n);
+    assert_positive(n);
+    B_T = transpose_mat(B, n, n); /* would be easier to multplie this way */
         for (i = 0; i < n; i++)
         {
             for (j = 0; j < n; j++)
@@ -275,14 +239,12 @@ void mult_matrix(double** A, double** B, double ** C ,int n) {
 }
 
 
-
-
 void copy_matrix(double** A, double** B ,int n,int m){
     /* copy B into A, B override A, assume dim(A)=dim(B) */
     int i, j;
     assert_not_null(A);
     assert_not_null(B);
-    assert_positive(n > 0);
+    assert_positive(n );
     for (i = 0; i < n; i++)
     {
         for (j = 0; j < m; j++)
@@ -304,20 +266,19 @@ void sub_matrix(double** A, double** B, double** C,int n) {
 void print_mat( double  ** mat, int n, int d)
 {
     int i;
- //   print_verbose("===========TURN OFF VER=1 ===============\n");
     for (i = 0; i < n; i++) {
         print_vector(mat[i],d);
         if (i<n-1)
             printf("\n");
     }
-   /* print_verbose("==============================\n"); */
+
 }
 
 double** create_Id_matrix(int n) {
     int i;
     double** mat;
-    assert_positive(n > 0);
-     mat = create_matrix(n,n);
+    assert_positive(n);
+    mat = create_matrix(n,n);
     for (i = 0; i < n; i++) {
         mat[i][i] = 1; /*  for i != j ,calloc  allocated memory block to zero */
 
@@ -325,8 +286,9 @@ double** create_Id_matrix(int n) {
     return mat;
 }
 
-void re_order_matrix_by_indces(double** A,int* indces, int n) /* TODO FIX THIS */
+void re_order_matrix_by_indces(double** A,int* indces, int n)
 {
+
     double** hold_row = create_matrix(n,n);
     int i,j,P;
     for (i = 0; i<n; i++) {
@@ -343,12 +305,13 @@ void re_order_matrix_by_indces(double** A,int* indces, int n) /* TODO FIX THIS *
     free_matrix(hold_row,n);
 }
 
-void renorm_matrix_rows(double** U, int n,int k, double** T)
-{
-    int i;
 
+
+void renorm_matrix_rows(double** U, int n,int k, double** T)
+{ /* Create Vector and allocate memory for each row */
+    int i;
     for (i = 0; i < n; i++)
-        T[i]= renormlized_vector(U[i], k);
+        T[i] = renormlized_vector(U[i], k);
 }
 /*************** Matrix END ******************/
 
@@ -371,7 +334,7 @@ int get_index_of_closest_cluster(double* dot, double** cluster_list, int d, int 
     int i;
     double min_dis;
     double tmp_dis;
-    j = 0;
+    j = 0; /* start from the lowest index, increase only for shorter distance */
     min_dis = find_distance(dot, cluster_list[0], d);
       for (i = 1; i < k; i++)
     {
@@ -391,11 +354,12 @@ void update_cluster_center(double* dot, double * center,int cluster_size,int d,i
     double* center_temp;
     int i;
     if (cluster_size + sign == 0){
-               return; /* remove dot from cluster, but don't change cluster position  SHOULD NOT HAPPAN */
+               return;
+               /* remove dot from cluster, but don't change cluster position  SHOULD NOT HAPPEN */
     }
 
     if (cluster_size==0){
-       /* HOULD NOT HAPPAN */
+       /* SHOULD NOT HAPPAN */
         return;
     }
 
@@ -433,6 +397,7 @@ void simple_kmean (double ** T_mat, double ** T_cluster_list, int* cluster_index
     int is_a_cluster_changed , count_iter;
     int *dot_at,   *move_dot_to, *T_cluster_size ;
     max_iter = 100;
+
     dot_at = (int*) calloc(n, sizeof(int) );
     assert_not_null(dot_at);
 
@@ -526,8 +491,7 @@ void create_adj_mat(double** observations, int n, int d,double** W)
 }
 
 void create_diagonal_degree_mat(double** adj_mat,int n,double** D) {
-    /* ns stands for negtive squre root this function returns D^(-1/2) */
-    int i;
+        int i;
     assert_not_null(adj_mat);
     assert_positive(n);
     for (i = 0; i < n; i++)
@@ -537,7 +501,6 @@ void create_diagonal_degree_mat(double** adj_mat,int n,double** D) {
 }
 
 void D_sqrt(double** D,int n) {
-    /* ns stands for negtive squre root this function returns D^(-1/2) */
     int i;
     assert_not_null(D);
     assert_positive(n);
@@ -637,10 +600,10 @@ void update_A_f(int i, int j, int n, double c, double s, double** A, double ** A
     int r;
     for(r = 0; r < n; r++){
         if( r != i && r != j ){
-         A1[r][i] = c * A[r][i] - s * A[r][j];
-         A1[r][j] = c * A[r][j] + s * A[r][i];
-         A1[i][r] = A1[r][i]; /* A1 is symatric */
-         A1[j][r] = A1[r][j];
+            A1[r][i] = c * A[r][i] - s * A[r][j];
+            A1[r][j] = c * A[r][j] + s * A[r][i];
+            A1[i][r] = A1[r][i]; /* A1 is symatric */
+            A1[j][r] = A1[r][j];
         }
 
     }
@@ -662,7 +625,7 @@ double sum_square_elements_off_diag(double ** A,int n){
         {
             if(i!=j)
             {
-                sum += 2* pow(A[i][j],2);
+                sum += 2 * pow(A[i][j],2);
             }
 
         }
@@ -671,10 +634,11 @@ double sum_square_elements_off_diag(double ** A,int n){
 }
 int check_convergence(double** A,double** A1,int n)
     {
-    double eps =   1.0 * pow(10,-15);
-    double sum_A = sum_square_elements_off_diag( A, n );
-    double sum_A1 = sum_square_elements_off_diag( A1, n );
-    double diff =  sum_A - sum_A1;
+     double eps, sum_A, sum_A1, diff;
+     eps =   1.0 * pow(10,-15);
+     sum_A = sum_square_elements_off_diag( A, n );
+     sum_A1 = sum_square_elements_off_diag( A1, n );
+     diff =  sum_A - sum_A1;
     if( diff <= eps  || sum_A1 == 0) /* sum_A1 == 0 A1 is diagonal */
         return 1;
     else
@@ -683,15 +647,15 @@ int check_convergence(double** A,double** A1,int n)
 
 Eigen find_eigen_vectors_and_values(double** L, int n){
     /* Start with A = L_norm */
-    assert_not_null(L);
-    assert_positive(n);
 
-    int iter_count, i,j;
+    int iter_count, i, j;
     int max_iter,convergence;
     double **V, **A, **A_f;
     Eigen eigen;
     double c,t,s, theta;
 
+    assert_not_null(L);
+    assert_positive(n);
     A = create_matrix(n,n);
     A_f = create_matrix(n,n);
     V = create_Id_matrix(n);
@@ -742,18 +706,20 @@ Eigen find_eigen_vectors_and_values(double** L, int n){
 /**** Mergesort start ****/
 void merge(double* arr,int* arr_i, int l, int m, int r)
 {
+    double *L, *R;
+    int *L_i, *R_i;
     int i, j, k;
     int n1 = m - l + 1;
     int n2 = r - m;
 
     /* create temp arrays */
-    double* L = (double*) malloc( n1 * sizeof (double));
+    L = (double*) malloc( n1 * sizeof (double));
     assert_not_null(L);
-    double* R = (double*) malloc( n2 * sizeof (double));
+    R = (double*) malloc( n2 * sizeof (double));
     assert_not_null(R);
-    int* L_i = (int*) malloc( n1 * sizeof (int));
+    L_i = (int*) malloc( n1 * sizeof (int));
     assert_not_null(L_i);
-    int* R_i = (int*) malloc( n2 * sizeof (int));
+    R_i = (int*) malloc( n2 * sizeof (int));
     assert_not_null(R_i);
     /* Copy data to temp arrays L[] and R[] */
     for (i = 0; i < n1; i++){
@@ -808,11 +774,12 @@ void merge(double* arr,int* arr_i, int l, int m, int r)
     free(R_i);
 }
 
-/* l is for left index and r is right index of the
-   sub-array of arr to be sorted */
+
 void mergeSort(double* arr,int* arr_i, int l, int r)
 {
     /* based on www.geeksforgeeks.org/merge-sort/ */
+    /* l is for left index and r is right index of the
+   sub-array of arr to be sorted */
     if (l < r) {
         /* Same as (l+r)/2, but avoids overflow for large l and h */
         int m = l + (r - l) / 2;
@@ -830,20 +797,24 @@ void mergeSort(double* arr,int* arr_i, int l, int r)
 /**********   Eigen_values START **********/
 double* extract_eigen_values_from_mat(double** mat,int n){
     int i;
-    double * eigen_values = calloc(n,sizeof(double) );
+    double* eigen_values;
+    eigen_values = calloc(n,sizeof(double) );
     assert_not_null( eigen_values);
-    for(i=0;i<n;i++){
+    for(i=0 ; i<n ; i++){
         eigen_values[i]= mat [i][i];
     }
     return eigen_values;
 }
 
 
-int  eigengap_huristic(Eigen eigen){
-    int k,m,i;
+int  eigengap_huristic(Eigen eigen,int k){
+    int m,i;
     double  delta_i, max;
+    if (k > 0)
+        return k;
+
     m =  (int ) eigen.mat_size / 2; /* it said that k<n/2 */
-    max = - 1 ;
+    max = - 1 ; /* must be positive , as the values are sorted */
     k = 0;
     for (i = 0 ; i < m ; i++){
         delta_i = abs_d (eigen.values[i] - eigen.values[i+1]) ;
@@ -878,10 +849,11 @@ void free_eigen(Eigen eigen){
     free(eigen.values);
     eigen.ranks = NULL;
     eigen.values = NULL;
+
 }
 
 void print_eigen(Eigen eigen){
-    int n,i,j;
+    int n,i;
      n = eigen.mat_size;
     for(i=0; i<n;i++)
     {
@@ -892,66 +864,14 @@ void print_eigen(Eigen eigen){
 }
 /**********   Eigen_values END **********/
 
-void test_sort_Vectors(void){
-    double d[] = {5,9,3,4,5,2,5,1};
 
-}
-
-void test_stable_sort(void){
-    int perm = 6; /* 0 7 8 */
-    int n = 8;
-    int i,j;
-    double d0[] = {5,9,3,4,5,2,5,1};
-    double** double_mat  = (double**) malloc(perm * sizeof(double*));
-    int** ind_mat  = (int**) malloc(perm * sizeof(int*));
-    for (i=0;i<perm;i++)
-    {
-        ind_mat[i] = (int*)  malloc(n * sizeof(int));
-        double_mat[i] = (double*)  malloc(n * sizeof(double));
-
-        for (j=0;j<n;j++)
-        {
-            double_mat[i][j] =d0[j]; /* create 6 version of d0 */
-            ind_mat[i][j] = 6;
-
-        }
-
-    }
-
-    ind_mat[0][0] = 0;ind_mat[0][4] = 7;ind_mat[0][6] = 8;
-    ind_mat[1][0] = 0;ind_mat[1][4] = 8;ind_mat[1][6] = 7;
-    ind_mat[2][0] = 7;ind_mat[2][4] = 0;ind_mat[2][6] = 8;
-    ind_mat[3][0] = 7;ind_mat[3][4] = 8;ind_mat[3][6] = 0;
-    ind_mat[4][0] = 8;ind_mat[4][4] = 0;ind_mat[4][6] = 7;
-    ind_mat[5][0] = 8;ind_mat[5][4] = 7;ind_mat[5][6] = 0;
-
-    for (i=0;i<perm;i++)
-    {
-        printf("===PERM ID %d===\nBEFORE:",i+1);
-        printf("perm: %d,%d,%d\n",ind_mat[i][0],ind_mat[i][4],ind_mat[i][6]);
-        mergeSort(double_mat[i],ind_mat[i],0,n-1);
-      /*   for (j=0;j<n;j++)
-             printf("%.0f,",double_mat[i][j]); */
-        printf("AFTER:");
-         printf("perm: %d,%d,%d\n",ind_mat[i][4],ind_mat[i][5],ind_mat[i][6]);
-        for (j=0;j<n;j++) {
-             printf("%.0f,",double_mat[i][j]);
-         }
-        printf("\n ");
-        free(double_mat[i]);
-        free(ind_mat[i]);
-
-        }
-    free(double_mat);
-    free(ind_mat);
-    }
 
 
 /***************  SPK START ******************/
 
 void start_wam(double** observations , int n, int d, double*** W)
 {
-
+    /*passing a pinter to the W */
     *W = create_matrix(n, n);
     create_adj_mat(observations,n,d,*W);
 
@@ -970,9 +890,11 @@ void start_lnorm(double** observations , int n, int d, double*** L)
     double** W = create_matrix(n, n);
     double** D = create_matrix(n, n);
     *L = create_matrix(n, n);
+
     create_adj_mat(observations,n,d,W);
     create_diagonal_degree_mat(W,n,D);
     D_sqrt(D,n);
+
     create_L_norm(D,W,n,*L);
     free_matrix(W,n);
     free_matrix(D,n);
@@ -981,52 +903,56 @@ void start_lnorm(double** observations , int n, int d, double*** L)
 void start_jacobi(double** observations , int n, double*** E)
 {
     Eigen eigen = find_eigen_vectors_and_values(observations, n);
-   inplace_transpose_mat(eigen.vectors,n,n); /*  now each row is a vector */
+    inplace_transpose_mat(eigen.vectors,n,n); /*  now each row is a vector */
     *E  = create_matrix(n+1, n);
     eigen_to_matrix(eigen,*E,n);
 }
 
+double** Create_T_from(Eigen eigen,int n, int k){
+    int i,j;
+    double **U, **T;
+    U  = create_matrix(n, k);
+    for (i=0; i<n; i++){
+        for (j=0; j<k; j++)  /* each  eigen vector is a column in U */
+            U[i][j] = eigen.vectors[j][i];
+    }
+
+    T = (double  ** ) calloc(n , sizeof( double * ) );
+    assert_not_null(T);
+    renorm_matrix_rows(U, n,k, T);
+    free_matrix(U,n);
+    return T;
+}
 
 spk_results activate_flag(char* goal,double** observations , int k, int n, int d)
-{
-    /* run all the flags, that are not spk */
-    int i,j;
+{   /* run all the flags, that are not spk */
+
     spk_results res;
     Eigen eigen;
-    double **W ,**D ,**L, **E, **U, **T;
+    double **W ,**D ,**L, **E, **T;
     res.T_size = n;
     res.k = n;
     if (is_goal("wam")){
         start_wam(observations,n,d,&W);
         res.T = W;
-        print_mat(res.T,res.T_size,n) ;
-
-        return res;
-    }
-    if (is_goal("ddg"))
-    {
+      }
+    if (is_goal("ddg")){
         start_ddg(observations,n,d,&D);
         res.T = D;
-        print_mat(res.T,res.T_size,n);
-        return res;
     }
-    if (is_goal("lnorm"))
-    {
+    if (is_goal("lnorm")) {
         start_lnorm(observations,n,d,&L);
         res.T = L;
-        print_mat(res.T,res.T_size,n);
-        return res;
     }
-    if (is_goal("jacobi"))
-    {
+    if (is_goal("jacobi")) {
         start_jacobi(observations,n,&E);
-        res.T_size = n + 1;
-        res.T = E;
+        res.T_size = n + 1; res.T = E;
+    }
+    if ( ! is_goal("spk")){
         print_mat(res.T,res.T_size,n);
         return res;
     }
-    /* else goal = full  spk  */
-
+    /* implicit  goal == spk */
     W = create_matrix(n, n);
     create_adj_mat(observations,n,d,W);
 
@@ -1039,35 +965,19 @@ spk_results activate_flag(char* goal,double** observations , int k, int n, int d
     eigen = find_eigen_vectors_and_values(L, n);
     inplace_transpose_mat(eigen.vectors,n,n); /*  now each row is an eigen  vector, easily reordered */
     mergeSort(eigen.values,eigen.ranks,0,n-1);
-
     re_order_matrix_by_indces(eigen.vectors, eigen.ranks, n);
 
-     if (k==0) /* TODO what about k<0 ? */
-        k = eigengap_huristic(eigen);
-    U  = create_matrix(n, k);
-
-    for (i=0; i<n; i++)
-        {
-            for (j=0; j<k; j++) {
-                U[i][j] = eigen.vectors[j][i];
-            } /* each  eigen vector is a column in U */
-
-        }
-
-
-    T = (double  ** ) calloc(n , sizeof( double * ) );
-    assert_not_null(T);
-    renorm_matrix_rows(U, n,k, T);
+    k = eigengap_huristic(eigen,k);
+    T = Create_T_from(eigen,n,k);
 
     free_matrix(W,n);
     free_matrix(D,n);
     free_matrix(L,n);
-    free_matrix(U,n);;
     free_eigen(eigen);
-    res.T = T;
-    res.k = k;
+    res.T = T;  res.k = k;
     return res;
 }
+/***************  SPK END ******************/
 /***************  SPK END ******************/
 
 /******** C Interface ******/
@@ -1127,7 +1037,7 @@ Tuple2 load_observations_from_file(double** observations, char* file_name)
 
 
 
-/***** TEST QSORT ******/
+
 
 
 int main(int argc, char* argv[])
@@ -1144,6 +1054,7 @@ int main(int argc, char* argv[])
     observations_load =  create_matrix(n, d);
     super_assert((argc==4) );
     super_assert( (atof(argv[1]) == atoi(argv[1])) ); /* is k an integer */
+
     k =  atoi(argv[1]);
     load_string(&goal,argv[2]);
     load_string(&file_name,argv[3]);
@@ -1155,7 +1066,6 @@ int main(int argc, char* argv[])
     n = sizes.i;    d = sizes.j;
     observations =  create_matrix(n, d);
     copy_matrix(observations,observations_load,n,d);
-
     Res = activate_flag( goal, observations , k,  n, d);
     if(is_goal("spk")){
         k = Res.k;

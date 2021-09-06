@@ -65,42 +65,54 @@ def compre_mats(my_result, test_results ):
 
 def run_and_compre(flag,test_ind,k):
     i = test_ind
+    for lang in ["C", "P"]:
+        if flag == "jacobi":
+            test_results_file = f"tests/reference/jacobi/test{i}_{flag}_output_{lang}.txt"
+            my_result_file = f"tests/reference/my_output/output_{i}_{flag}_output_{lang}.txt"
+            folder = "jacobi"
+        else:
+            test_results_file = f"tests/reference/general/test{i}_{flag}_{k}_output_{lang}.txt"
+            my_result_file = f"tests/reference/my_output/output_{i}_{flag}_{k}_output_{lang}.txt"
+            folder = "spk"
+        args = f"{k} {flag}   tests/test_data/{folder}_tests/test{i}.csv >{my_result_file} "
+        if lang =="P":
+            cmd = f"python spkmeans.py " + args
+        else:
+            cmd = f"spkmeans " + args
+      #  print(cmd)
+        os.system(cmd)
 
+        res = compre_files(my_result_file, test_results_file)
+        if not res:
+            print("Failed")
+            print(cmd)
+            print("=============================================================================")
 
-    if flag == "jacobi":
-        test_results_file = f"tests/reference/jacobi/test{i}_{flag}_output_P.txt"
-        my_result_file = f"tests/reference/my_output/output_{i}_{flag}_output_P.txt"
-        folder = "jacobi"
-    else:
-        test_results_file = f"tests/reference/general/test{i}_{flag}_{k}_output_P.txt"
-        my_result_file = f"tests/reference/my_output/output_{i}_{flag}_{k}_output_P.txt"
-        folder = "spk"
-
-    cmd = f"python spkmeans.py {k} {flag}   tests/test_data/{folder}_tests/test{i}.csv >{my_result_file} "
-    print(cmd)
-    os.system(cmd)
-
-
-    my_result = np.loadtxt(my_result_file, delimiter=',')
-    test_results = np.loadtxt(test_results_file, delimiter=',')
-    compre_mats(my_result, test_results)
 
 
 def test_loop():
     flags =["wam","ddg","lnorm","jacobi"] # TODO check spk
     for i in range(10):
+        if i==8:
+            continue
         print(f"=================={i}========================")
         for flag in flags:
-                run_and_compre(flag, i, 1)
+                  run_and_compre(flag, i, 1)
     print("Done!!!")
 
 
 
 #test_loop()
 def not_equal_print(f1,f2,l1,l2):
+    if len(l1) == 0 or len(l2) == 0:
+        print ("empty")
+        return
+    print("files:")
     print(f1)
-    print(l1)
     print(f2)
+
+    print("Matrix:")
+    print(l1)
     print(l2)
 
 def compre_files(f1,f2):
@@ -108,13 +120,17 @@ def compre_files(f1,f2):
         l1 = txt_file.readlines()
     with open(f2, "r") as txt_file:
         l2 = txt_file.readlines()
+
+
     if len(l1) != len(l2):
         print("diff length")
         not_equal_print(f1,f2,l1,l2)
         return False
     for r1,r2 in zip(l1,l2):
         if len(r1) != len(r2):
-            print("diff row length")
+            print("diff row length:")
+            print(r2)
+            print(r1)
             not_equal_print(f1, f2, l1, l2)
             return False
         for e1,e2 in zip(r1,r2):
@@ -146,7 +162,7 @@ def get_spk_tests():
 def run_spk_tests():
     spk_arg_list = get_spk_tests()
     for k,i in spk_arg_list:
-        if i=="1" or i ==1:
+        if i==8 or i ==1:
             continue
         for lang in ["C","P"]:
             args = f" {k} spk  tests/test_data/spk_tests/test{i}.csv"
@@ -192,6 +208,6 @@ def test_count_empty():
 
 
 os.system( "python  setup.py build_ext --inplace")
-#test_loop()
-#run_spk_tests()
-test_count_empty()
+test_loop()
+run_spk_tests()
+#test_count_empty()
