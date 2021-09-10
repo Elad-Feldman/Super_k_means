@@ -1,21 +1,21 @@
 #include "spkmeans.h"
-
+#define MAXSIZE 50
 /* gcc spkmeans.c && gcc  -o spkmeans spkmeans.c && spkmeans  5  jacobi   tests/test_data/jacobi_tests/test7.csv  */
 
 
 /****** small function START *******/
 
-double fix_neg_zero(double num){
+double fix_neg_zero(double num){ /* round  numbers and fix the proble, of -0.0000 to 0.0000 */
     if (-0.00005 < num && num < 0)
         num = 0;
     return num;
 }
-void super_assert(int cond){
+void super_assert(int cond){ /* if  conditions not apply  print the required message and exit */
     if (cond) {
         return;
     }
     printf("An Error Has Occured");
-    exit(0);
+    exit(0); /* https://stackoverflow.com/questions/15495004/memory-leaks-occur-if-exitexitcode-in-c  */
 
 
 }
@@ -45,7 +45,7 @@ int assert_goal(char* goal)
 /*************** Vectors  START ******************/
 
 
-void print_vector_int(int* a,int n){
+void print_vector_int(int* a,int n){ /* print an array of integers in a row */
     int i;
     for (i = 0; i < n; i++){
         printf("%d",a[i]);
@@ -57,7 +57,7 @@ void print_vector_int(int* a,int n){
 
 }
 void print_vector(double* a,int n)
-{
+{ /* print an array of doubles, with 4 digits, in a row */
     int i;
     for (i = 0; i < n; i++){
        printf("%.4f", fix_neg_zero(a[i]) ); /* TOOD fix negative zero */
@@ -67,7 +67,7 @@ void print_vector(double* a,int n)
     }
 
 
-double dot_mult_vector(double *a, double *b, int n) {
+double dot_mult_vector(double *a, double *b, int n) { /* scalar multiplied  of 1d  vectors */
     double sum;
     int i;
     assert_not_null(a);
@@ -79,7 +79,7 @@ double dot_mult_vector(double *a, double *b, int n) {
         sum += a[i] * b[i];
     return sum;
 }
-double find_vec_norm(double* a, int n) {
+double find_vec_norm(double* a, int n) { /* find the norm of  a vector  */
     int j;
     double sum,tmp;
     assert_not_null(a);
@@ -87,7 +87,7 @@ double find_vec_norm(double* a, int n) {
     sum = 0;
     for ( j = 0; j < n; j++)
     {
-        tmp = pow(a[j],2);
+        tmp = pow(a[j],2); /* fix rounding error */
         sum +=  tmp;
     }
 
@@ -95,7 +95,7 @@ double find_vec_norm(double* a, int n) {
     return sqrt(sum);
 }
 double find_vec_norm_diff(double* a, double* b, int n) {
-    /* returns the euclidian distance bitween two vectors a, b */
+    /* returns the euclidean distance between two vectors a, b */
     int i;
     double norm;
     double* c ;
@@ -109,7 +109,7 @@ double find_vec_norm_diff(double* a, double* b, int n) {
     return norm;
 }
 
-double sum_vector(double* a, int n) {
+double sum_vector(double* a, int n) { /* sum the elements of a vector */
     double sum;
     int i;
     sum = 0;
@@ -117,33 +117,9 @@ double sum_vector(double* a, int n) {
         sum += a[i];
     return sum;
 }
-void swap_int(int *a,int *b)
-{
-    int t;
-     t = *a;
-    *a = *b;
-    *b = t;
-}
 
-void swap_double(double *a, double *b)
-{
-    double t;
-    t = *a;
-    *a = *b;
-    *b = t;
 
-}
-
-void swap_double_pointers(double **a, double **b)
-{
-    double* t;
-    t = *a;
-    *a = *b;
-    *b = t;
-
-}
-
-double* renormlized_vector(double* a, int n) {
+double* renormlized_vector(double* a, int n) { /* find the norm of the vector and normalize the vectors */
     int j;
     double norm;
     double* norm_vec;
@@ -168,7 +144,7 @@ double* renormlized_vector(double* a, int n) {
 
 /*************** Matrix  START ******************/
 double **create_matrix(int rows, int cols)
-{
+{ /* allcote memory of a row X cols matrix and return it */
     int i;
     double** mat;
     mat = (double  **) calloc(rows , sizeof( double*) );
@@ -183,7 +159,7 @@ double **create_matrix(int rows, int cols)
 }
 
 void free_matrix( double  ** A, int rows)
-{
+{ /* free matrix A, free each row and then A */
     int i;
     for (i = 0; i < rows; i++){
         free(A[i]);
@@ -202,7 +178,7 @@ void inplace_transpose_mat(double** mat, int rows, int cols){
 
 }
 
-double** transpose_mat(double** mat, int rows, int cols)
+double** transpose_mat(double** mat, int rows, int cols) /* transpose the matrix and return a copy of the T_mat */
 {
     int i, j;
     double** mat_T;
@@ -221,7 +197,7 @@ double** transpose_mat(double** mat, int rows, int cols)
 }
 
 void mult_matrix(double** A, double** B, double ** C ,int n) {
-    /* is_diag options : 0 = full, 1= A diag , 2= B diag */
+    /* multiple A and B, save result into C */
 
     int i, j;
     double **B_T;
@@ -254,6 +230,7 @@ void copy_matrix(double** A, double** B ,int n,int m){
 }
 
 void sub_matrix(double** A, double** B, double** C,int n) {
+    /*  C = A - B */
     int i, j;
     for ( i = 0; i < n; i++)
     {
@@ -264,7 +241,7 @@ void sub_matrix(double** A, double** B, double** C,int n) {
 }
 
 void print_mat( double  ** mat, int n, int d)
-{
+{ /* print  matrix with n rows and d cols */
     int i;
     for (i = 0; i < n; i++) {
         print_vector(mat[i],d);
@@ -274,7 +251,7 @@ void print_mat( double  ** mat, int n, int d)
 
 }
 
-double** create_Id_matrix(int n) {
+double** create_Id_matrix(int n) { /*  create a sqaure matrix n X n , with 1 on diagonal, else zeros */
     int i;
     double** mat;
     assert_positive(n);
@@ -287,7 +264,7 @@ double** create_Id_matrix(int n) {
 }
 
 void re_order_matrix_by_indces(double** A,int* indces, int n)
-{
+{ /* get a matrix A and switch the rows of it by indeces order  */
 
     double** hold_row = create_matrix(n,n);
     int i,j,P;
@@ -319,6 +296,7 @@ void renorm_matrix_rows(double** U, int n,int k, double** T)
 
 /*************** kmean  START ******************/
 double find_distance(double *dot, double *center, int d){
+    /* find the distande of dot from the center  */
     double dis,dif;
     int i;
     dis = 0;
@@ -330,6 +308,7 @@ double find_distance(double *dot, double *center, int d){
 
 }
 int get_index_of_closest_cluster(double* dot, double** cluster_list, int d, int k ){
+    /* find the index of the cluster with the minimal distance  */
     int j;
     int i;
     double min_dis;
@@ -351,6 +330,7 @@ int get_index_of_closest_cluster(double* dot, double** cluster_list, int d, int 
     return j;
 }
 void update_cluster_center(double* dot, double * center,int cluster_size,int d,int sign) {
+    /* remove or add the dot the cluster and update the center value  */
     double* center_temp;
     int i;
     if (cluster_size + sign == 0){
@@ -383,16 +363,18 @@ double** get_init_clusters_list(double** T,int k){
     return cluster_list;
 }
 int * init_clusters_indexes(int k){
+    /*  get an array size k where arr[i] = i*/
     int i;
     int * clusters_indexes ;
     clusters_indexes =(int *) calloc(k, sizeof(int) );
     assert_not_null(clusters_indexes);
     for(i=0;i<k;i++){
-        clusters_indexes[i]=i;
+        clusters_indexes[i] = i;
     }
     return clusters_indexes;
 }
 void simple_kmean (double ** T_mat, double ** T_cluster_list, int* cluster_index_list, int n, int k, int d,int is_Py_call) {
+    /*  preform kmean on T, using the cluster list and indexes*/
     int i, j ,max_iter ;
     int is_a_cluster_changed , count_iter;
     int *dot_at,   *move_dot_to, *T_cluster_size ;
@@ -469,7 +451,7 @@ void simple_kmean (double ** T_mat, double ** T_cluster_list, int* cluster_index
 
 /************    Lnorm  START    ********/
 void create_adj_mat(double** observations, int n, int d,double** W)
-{
+{   /*  create the adj matrix for observations */
     double norm ;
     int i, j;
     assert_not_null(observations);
@@ -490,7 +472,7 @@ void create_adj_mat(double** observations, int n, int d,double** W)
 
 }
 
-void create_diagonal_degree_mat(double** adj_mat,int n,double** D) {
+void create_diagonal_degree_mat(double** adj_mat,int n,double** D) { /*create_diagonal_degree_mat from the adj matrix */
         int i;
     assert_not_null(adj_mat);
     assert_positive(n);
@@ -501,6 +483,7 @@ void create_diagonal_degree_mat(double** adj_mat,int n,double** D) {
 }
 
 void D_sqrt(double** D,int n) {
+    /* get  diagonal_degree_mat and for each  diag element change it to 1/sqrt(element) */
     int i;
     assert_not_null(D);
     assert_positive(n);
@@ -513,7 +496,7 @@ void D_sqrt(double** D,int n) {
 
 }
 
-void create_L_norm(double** D, double** W, int n, double** L ) {
+void create_L_norm(double** D, double** W, int n, double** L ) { /*  create L norm from diagonal_degree_mat and  adj matrix*/
     double** id_mat = create_Id_matrix(n);
     double** DW = create_matrix(n,n);
     double** DWD = create_matrix(n,n);
@@ -531,14 +514,14 @@ void create_L_norm(double** D, double** W, int n, double** L ) {
 
 
 /************    Jacobi  START    ********/
-double abs_d(double x){
+double abs_d(double x){ /* get the abs( x ) */
     if(x<0)
         return -1.0 * x;
     return x;
 }
 
 void find_ind_max_ele_off_diag(double** A, int n,int* I, int* J)
-{
+{ /* find the indexes of the  biggest  absolute value  element of A that is off diag */
     int i, j;
     double tmp;
     double max_abs;
@@ -561,13 +544,13 @@ void find_ind_max_ele_off_diag(double** A, int n,int* I, int* J)
     }
 }
 
-double sign(double x) {
+double sign(double x) { /* return sign of x  */
     if (x < 0)
         return -1.0;
 
     return 1.0;
 }
-double calc_theta(double a_jj ,double a_ii,double a_ij) {
+double calc_theta(double a_jj ,double a_ii,double a_ij) { /*calc_theta */
     if (a_ij == 0) {
         return 0;
     }
@@ -575,16 +558,17 @@ double calc_theta(double a_jj ,double a_ii,double a_ij) {
     return (a_jj - a_ii) / (2.0 * a_ij);
 }
 double calc_t(double theta)
-{
+{ /*calc_t */
     double  mone,mechne;
     mone = sign(theta) ;
     mechne = abs_d( theta ) + sqrt( pow(theta,2) + 1.0 );
     return  mone / mechne ;
 }
-double calc_c(double t) { return 1.0 / sqrt( (pow(t,2)) + 1.0); }
+double calc_c(double t) { return 1.0 / sqrt( (pow(t,2)) + 1.0); } /* calc_c */
 
 
 void update_V(int i, int j, int  n, double c, double s,double** V){
+    /*update V matrix, taking into account the fact the P is almost diagonal to calculate only the relevant elements  */
     int r;
     double v1;
     double v2;
@@ -596,7 +580,7 @@ void update_V(int i, int j, int  n, double c, double s,double** V){
     }
 }
 
-void update_A_f(int i, int j, int n, double c, double s, double** A, double ** A1){
+void update_A_f(int i, int j, int n, double c, double s, double** A, double ** A1){ /* find A' using the instructions to A' definition */
     int r;
     for(r = 0; r < n; r++){
         if( r != i && r != j ){
@@ -615,7 +599,7 @@ void update_A_f(int i, int j, int n, double c, double s, double** A, double ** A
 
 }
 
-double sum_square_elements_off_diag(double ** A,int n){
+double sum_square_elements_off_diag(double ** A,int n){ /* sum all the elements off diagonal of A */
     int i,j;
     double sum;
     sum = 0;
@@ -633,7 +617,7 @@ double sum_square_elements_off_diag(double ** A,int n){
     return sum;
 }
 int check_convergence(double** A,double** A1,int n)
-    {
+    { /* check the diff between A and A' and if A' is diagonal  */
      double eps, sum_A, sum_A1, diff;
      eps =   1.0 * pow(10,-15);
      sum_A = sum_square_elements_off_diag( A, n );
@@ -645,7 +629,7 @@ int check_convergence(double** A,double** A1,int n)
         return 0;
 }
 
-Eigen find_eigen_vectors_and_values(double** L, int n){
+Eigen find_eigen_vectors_and_values(double** L, int n){ /* this is the jacobi algorithem */
     /* Start with A = L_norm */
 
     int iter_count, i, j;
@@ -705,7 +689,7 @@ Eigen find_eigen_vectors_and_values(double** L, int n){
 
 /**** Mergesort start ****/
 void merge(double* arr,int* arr_i, int l, int m, int r)
-{
+{ /*  merge two slices of the arr */
     double *L, *R;
     int *L_i, *R_i;
     int i, j, k;
@@ -795,7 +779,7 @@ void mergeSort(double* arr,int* arr_i, int l, int r)
 /**** Mergesort end ****/
 
 /**********   Eigen_values START **********/
-double* extract_eigen_values_from_mat(double** mat,int n){
+double* extract_eigen_values_from_mat(double** mat,int n){ /* get the eigen values of the diagonal of mat */
     int i;
     double* eigen_values;
     eigen_values = calloc(n,sizeof(double) );
@@ -807,7 +791,7 @@ double* extract_eigen_values_from_mat(double** mat,int n){
 }
 
 
-int  eigengap_huristic(Eigen eigen,int k){
+int  eigengap_huristic(Eigen eigen,int k){ /*find k by the gap between the sorted eigen values */
     int m,i;
     double  delta_i, max;
     if (k > 0)
@@ -829,7 +813,7 @@ int  eigengap_huristic(Eigen eigen,int k){
 }
 
 void eigen_to_matrix(Eigen eigen, double** E,int n)
-{
+{ /* set the egien values and vectors into one matrix */
 
     int i,j;
     for(j=0; j<n;j++){
@@ -843,7 +827,7 @@ void eigen_to_matrix(Eigen eigen, double** E,int n)
 
 }
 
-void free_eigen(Eigen eigen){
+void free_eigen(Eigen eigen){ /*free the memory of the eigen strct */
     free_matrix(eigen.vectors,eigen.mat_size);
     free(eigen.ranks);
     free(eigen.values);
@@ -852,16 +836,6 @@ void free_eigen(Eigen eigen){
 
 }
 
-void print_eigen(Eigen eigen){
-    int n,i;
-     n = eigen.mat_size;
-    for(i=0; i<n;i++)
-    {
-      printf("%d)  ",eigen.ranks[i]);
-      print_vector(eigen.vectors[i],n);
-    }
-    printf("=========================\n");
-}
 /**********   Eigen_values END **********/
 
 
@@ -870,14 +844,15 @@ void print_eigen(Eigen eigen){
 /***************  SPK START ******************/
 
 void start_wam(double** observations , int n, int d, double*** W)
-{
+{ /*start_wam flag, find  create_adj_mat */
+
     /*passing a pinter to the W */
     *W = create_matrix(n, n);
     create_adj_mat(observations,n,d,*W);
 
 }
 void start_ddg(double** observations , int n, int d, double*** D)
-{
+{ /*start_ddg flag, find  diagonal_degree_mat */
     double** W = create_matrix(n, n);
     *D = create_matrix(n, n);
     create_adj_mat(observations,n,d,W);
@@ -886,7 +861,7 @@ void start_ddg(double** observations , int n, int d, double*** D)
 }
 
 void start_lnorm(double** observations , int n, int d, double*** L)
-{
+{ /*l norm flag, get lnorm matrix */
     double** W = create_matrix(n, n);
     double** D = create_matrix(n, n);
     *L = create_matrix(n, n);
@@ -901,14 +876,15 @@ void start_lnorm(double** observations , int n, int d, double*** L)
 }
 
 void start_jacobi(double** observations , int n, double*** E)
-{
+{   /*get a symtric matrix, find eigen values and vbectors using the jacobi algoritem  */
     Eigen eigen = find_eigen_vectors_and_values(observations, n);
     inplace_transpose_mat(eigen.vectors,n,n); /*  now each row is a vector */
     *E  = create_matrix(n+1, n);
     eigen_to_matrix(eigen,*E,n);
+    free_eigen(eigen);
 }
 
-double** Create_T_from(Eigen eigen,int n, int k){
+double** Create_T_from(Eigen eigen,int n, int k){ /* create the T matrix form eigen struct */
     int i,j;
     double **U, **T;
     U  = create_matrix(n, k);
@@ -949,7 +925,7 @@ spk_results activate_flag(char* goal,double** observations , int k, int n, int d
         res.T_size = n + 1; res.T = E;
     }
     if ( ! is_goal("spk")){
-        print_mat(res.T,res.T_size,n);
+        print_mat(res.T, res.T_size ,n);
         return res;
     }
     /* implicit  goal == spk */
@@ -982,7 +958,7 @@ spk_results activate_flag(char* goal,double** observations , int k, int n, int d
 
 /******** C Interface ******/
 void load_string(char** str,char* cpy)
-{
+{ /* load string from args to var*/
     int len;
     len = ( (int) strlen (cpy)) + 1;
     *str = (char  *) malloc(  len * sizeof(char) );
@@ -991,7 +967,7 @@ void load_string(char** str,char* cpy)
 }
 
 int string_to_doubles(char *row,double* arr)
-{
+{ /* convert a string of doubles into array*/
     int i;
     char* ptr;
     i = 0;
@@ -1008,7 +984,7 @@ int string_to_doubles(char *row,double* arr)
 }
 
 Tuple2 load_observations_from_file(double** observations, char* file_name)
-{
+{    /* read file and turn it into a 2d matrix of doubles*/
     int d,n,i;
     FILE *fp;
     char* row;
@@ -1041,7 +1017,7 @@ Tuple2 load_observations_from_file(double** observations, char* file_name)
 
 
 int main(int argc, char* argv[])
-{
+{   /* c interface of code */ 
     int k,n,d;
     char*  goal;
     char*  file_name;
@@ -1050,7 +1026,7 @@ int main(int argc, char* argv[])
     double** observations, **observations_load;
     Tuple2 sizes;
     spk_results Res;
-    n = 50 ;  d = 50;/*for jacobi d=50*/
+    n = MAXSIZE ;  d = MAXSIZE;/*for jacobi d=50*/
     observations_load =  create_matrix(n, d);
     super_assert((argc==4) );
     super_assert( (atof(argv[1]) == atoi(argv[1])) ); /* is k an integer */
@@ -1069,7 +1045,6 @@ int main(int argc, char* argv[])
     Res = activate_flag( goal, observations , k,  n, d);
     if(is_goal("spk")){
         k = Res.k;
-      /*  printf("found k: %d \n",Res.k); */
         T_clusters_list = get_init_clusters_list(Res.T,k);
         T_clusters_indexes = init_clusters_indexes(k);
 
@@ -1080,7 +1055,7 @@ int main(int argc, char* argv[])
     }
 
     /* Free all */
-    free_matrix(observations_load,50);
+    free_matrix(observations_load,MAXSIZE);
     free(goal);
     free(file_name);
     free_matrix(observations, n);

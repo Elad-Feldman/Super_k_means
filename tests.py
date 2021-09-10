@@ -93,7 +93,7 @@ def run_and_compre(flag,test_ind,k):
 def test_loop():
     flags =["wam","ddg","lnorm","jacobi"] # TODO check spk
     for i in range(10):
-        if i==8:
+        if i==8 or i==1:
             continue
         print(f"=================={i}========================")
         for flag in flags:
@@ -112,8 +112,8 @@ def not_equal_print(f1,f2,l1,l2):
     print(f2)
 
     print("Matrix:")
-    print(l1)
-    print(l2)
+  #  print(l1)
+   # print(l2)
 
 def compre_files(f1,f2):
     with open(f1, "r") as txt_file:
@@ -201,13 +201,15 @@ def test_count_empty():
             count +=1
         print(i,end=", ")
     print(f" \n from {i}/{N} itertions {count}  are empty  !!")
-
+3
 
 #test_loop()
 #run_spk_tests()
 
-
+os.system("gcc spkmeans.c && gcc  -o spkmeans spkmeans.c")
 os.system( "python  setup.py build_ext --inplace")
+#os.system("python spkmeans.py 1 lnorm   tests/test_data/spk_tests/test7.csv")
 test_loop()
 run_spk_tests()
 #test_count_empty()
+print("\ndone tests.py")

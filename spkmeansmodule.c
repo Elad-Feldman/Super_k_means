@@ -1,6 +1,4 @@
-//
-// Created by TomBarzilay on 22/07/2021.
-//
+
 #include <Python.h>
 #define PY_SSIZE_T_CLEAN
 #include <stdio.h>
@@ -15,7 +13,11 @@ PyMODINIT_FUNC PyInit_spkmeans(void);
 /* ************  API FUNCTION CONVERT PYTHON OBJECT INTO C ARRAY AND BACK ************ */
 static void check_for_py_list(PyObject * _list)
 {
-    assert (!PyList_Check(_list) && "this is not a list ");
+    if ( !PyList_Check(_list)) {
+        printf("An Error Has Occured");
+         exit(0);
+    }
+
 }
 
 
@@ -29,7 +31,7 @@ static  PyObject* get_py_lst_from_c_array(double* c_dot, Py_ssize_t  d)
     for (i = 0; i < d; i++) {
         item = PyFloat_FromDouble(c_dot[i]);
         PyList_SetItem(dot,i,item);
-        // TO DO FREE MEMORY
+
     }
     return dot;
 }
@@ -47,25 +49,24 @@ static PyObject* get_py_lst_from_c_matrix(double ** c_observations ,  Py_ssize_t
         dot = get_py_lst_from_c_array(c_observations[i],d);
         PyList_SetItem(observations,i,dot);
     }
-    // TO DO FREE MEMORY
     return observations;
 
 }
 
 
 static  double* get_c_array_from_py_lst(PyObject * list, Py_ssize_t  d)
-{
+{ /* for observations */
     Py_ssize_t i;
     PyObject *item;
-    /* NEVER EVER USE malloc/calloc/realloc or free on PyObject */
     double *c_dot =(double *) calloc(d, sizeof(double));
-    assert(c_dot != NULL && "Problem in  load_python_list_to_c_array");
+    assert_not_null( c_dot );
+
     for (i = 0; i < d; i++) {
         item = PyList_GetItem(list, i); /* DON'T FREE - cause problems */
         c_dot[i] =  PyFloat_AsDouble((item));
 
         if (c_dot[i]  == -1 && PyErr_Occurred()){
-            puts("get_c_array_from_py_lst - ERROR");
+            puts("An Error Has Occured");
             free(c_dot);
             return c_dot;
         }
@@ -75,19 +76,18 @@ static  double* get_c_array_from_py_lst(PyObject * list, Py_ssize_t  d)
     return c_dot;
 }
 static  int* get_int_c_array_from_py_lst(PyObject * list, Py_ssize_t  d)
-{
+{ /* for index array */
     Py_ssize_t i;
     PyObject *item;
-    /* NEVER EVER USE malloc/calloc/realloc or free on PyObject */
-    int*c_dot = malloc(sizeof(double) * d);
-    assert(c_dot != NULL && "Problem in  load_python_list_to_c_array");
+    int* c_dot = malloc(sizeof(double) * d);
+    assert_not_null( c_dot );
     for (i = 0; i < d; i++) {
 
         item = PyList_GetItem(list, i); /* DON'T FREE - cause problems */
         c_dot[i] = (int) PyFloat_AsDouble((item));
 
         if (c_dot[i]  == -1 && PyErr_Occurred()){
-            puts("Something bad ... 2");
+            puts("An Error Has Occured");
             free(c_dot);
             return c_dot;
         }
@@ -105,7 +105,7 @@ static double** get_c_matrix_from_py_lst(PyObject * _list,  Py_ssize_t n, Py_ssi
     PyObject  *item;
     double ** c_observations;
     c_observations = (double **) calloc( n, sizeof(double *));
-    assert(c_observations != NULL && "Problem in  load_python_list_to_c_array");
+    assert_not_null( c_observations );
 
     for (i = 0; i < n; i++)
     {
@@ -126,29 +126,25 @@ static double** get_c_matrix_from_py_lst(PyObject * _list,  Py_ssize_t n, Py_ssi
  */
 
 
-/*
- * Print list of lists of ints without changing it
- */
-static PyObject* get_flag(PyObject *self, PyObject *args){
- /*  clock_t start, end ;
-   double cpu_time_used; */
 
-   char* goal;
-    int k;
+static PyObject* get_flag(PyObject *self, PyObject *args){
+
     PyObject* _observations, * _T;
     PyObject* T_K;
-    double** observations;
-    int n;
-    int d;
     spk_results res;
+    double** observations;
+    char* goal;
+    int n;
+    int k;
+    int d;
     T_K = PyList_New( (Py_ssize_t) 2 );
     _T =  Py_None;
-   /* start = clock(); */
-    if(!PyArg_ParseTuple(args, "siO",&goal,&k ,&_observations)) {//getting data from python
+
+    if(!PyArg_ParseTuple(args, "siO",&goal,&k ,&_observations)) { /*getting data from python */
         printf("An Error Has Occured");
         return NULL;
     }
-    check_for_py_list(_observations);//checking to see if the python object is actually a list
+    check_for_py_list(_observations); /*checking to see if the python object is actually a list */
     n = (int) PyList_Size(_observations);
     d = (int)PyList_Size(PyList_GetItem(_observations, 0));
 
@@ -162,10 +158,9 @@ static PyObject* get_flag(PyObject *self, PyObject *args){
      PyList_SetItem(T_K,0, _T );
      PyList_SetItem(T_K,1,Py_BuildValue("i",res.k));
 
+     free_matrix(res.T, res.T_size );
      free_matrix(observations, n);
-     /* end = clock();
-     cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
-     printf("%s with %d dots, took %.2f [sec].\n", goal,n ,cpu_time_used ); */
+
      return T_K;
     }
 
@@ -191,7 +186,7 @@ static PyObject* fit(PyObject *self, PyObject *args)
 
     n = PyList_Size(_T);
     k = PyList_Size(PyList_GetItem(_T, 0));
-     // printf("C fit: n=%d,  k=%d\n",n, k); /* TODO DELETE */
+
 
     /*  create c arrays from python lists */
     T_c = get_c_matrix_from_py_lst(_T,n,k);
@@ -205,8 +200,8 @@ static PyObject* fit(PyObject *self, PyObject *args)
 
     /* free memory */
 
-    free_matrix(cluster_list_c,k_c);
-    free_matrix(T_c,n_c);
+    free_matrix(T_c, n_c);
+    free_matrix(cluster_list_c, k_c);
     free(cluster_index_list_c );
     return Py_None;
 
